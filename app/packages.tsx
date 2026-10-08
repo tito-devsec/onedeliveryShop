@@ -44,40 +44,40 @@ export default function PackagesScreen() {
   const currentSub = subData?.subscription;
   const daysLeft = currentSub?.expires_at ? Math.ceil((new Date(currentSub.expires_at).getTime() - Date.now()) / 86400000) : null;
 
-  const COLORS = ["#3B82F6","#F97316","#8B5CF6"];
+  const COLORS = ["#2563EB","#EC7C2C","#7C3AED"];
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0F172A" }}>
-      <StatusBar style="light" />
-      <View style={{ paddingTop: insets.top + 8, paddingBottom: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "#1E293B", flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={26} color="#F97316" /></TouchableOpacity>
-        <Text style={{ color: "#F8FAFC", fontSize: 20, fontWeight: "800" }}>Packages & Plans</Text>
+    <View style={{ flex: 1, backgroundColor: "#F4F5F8" }}>
+      <StatusBar style="dark" />
+      <View style={{ paddingTop: insets.top + 8, paddingBottom: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "#FFFFFF", flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={26} color="#1B2036" /></TouchableOpacity>
+        <Text style={{ color: "#1B2036", fontSize: 20, fontWeight: "800" }}>Packages & Plans</Text>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {/* Current plan */}
         {currentSub && (
-          <View style={{ backgroundColor: "#1E293B", borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: "#22C55E40", flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <Ionicons name="checkmark-circle" size={28} color="#22C55E" />
+          <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: "#16A34A40", flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <Ionicons name="checkmark-circle" size={28} color="#16A34A" />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#F8FAFC", fontWeight: "800" }}>Current Plan: {currentSub.package_id?.replace(/_/g," ").toUpperCase()}</Text>
-              <Text style={{ color: daysLeft && daysLeft < 7 ? "#EF4444" : "#94A3B8", fontSize: 12, marginTop: 2 }}>
+              <Text style={{ color: "#1B2036", fontWeight: "800" }}>Current Plan: {currentSub.package_id?.replace(/_/g," ").toUpperCase()}</Text>
+              <Text style={{ color: daysLeft && daysLeft < 7 ? "#DC2626" : "#6B7280", fontSize: 12, marginTop: 2 }}>
                 {daysLeft !== null && daysLeft > 0 ? `${daysLeft} days remaining` : daysLeft === 0 ? "Expires today!" : "Expired"}
               </Text>
             </View>
           </View>
         )}
 
-        {isLoading ? <ActivityIndicator color="#F97316" size="large" style={{ marginTop: 40 }} /> : (
+        {isLoading ? <ActivityIndicator color="#EC7C2C" size="large" style={{ marginTop: 40 }} /> : (
           <View style={{ gap: 14 }}>
             {packages.map((pkg: any, idx: number) => {
               const features = Array.isArray(pkg.features) ? pkg.features : JSON.parse(pkg.features || "[]");
               const color    = COLORS[idx % COLORS.length];
               const isCurrent = currentSub?.package_id === pkg.id;
               return (
-                <View key={pkg.id} style={{ backgroundColor: "#1E293B", borderRadius: 20, overflow: "hidden", borderWidth: 2, borderColor: isCurrent ? "#22C55E" : color + "40" }}>
+                <View key={pkg.id} style={{ backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", borderWidth: 2, borderColor: isCurrent ? "#16A34A" : color + "40" }}>
                   {isCurrent && (
-                    <View style={{ backgroundColor: "#22C55E", paddingVertical: 4, alignItems: "center" }}>
+                    <View style={{ backgroundColor: "#16A34A", paddingVertical: 4, alignItems: "center" }}>
                       <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800" }}>CURRENT PLAN</Text>
                     </View>
                   )}
@@ -87,15 +87,15 @@ export default function PackagesScreen() {
                         <Text style={{ color: color, fontSize: 13, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1 }}>
                           {pkg.type}
                         </Text>
-                        <Text style={{ color: "#F8FAFC", fontSize: 22, fontWeight: "900" }}>{pkg.name}</Text>
+                        <Text style={{ color: "#1B2036", fontSize: 22, fontWeight: "900" }}>{pkg.name}</Text>
                       </View>
                       <View style={{ alignItems: "flex-end" }}>
                         {pkg.is_free ? (
-                          <Text style={{ color: "#22C55E", fontSize: 26, fontWeight: "900" }}>Free</Text>
+                          <Text style={{ color: "#16A34A", fontSize: 26, fontWeight: "900" }}>Free</Text>
                         ) : (
                           <>
                             <Text style={{ color: color, fontSize: 24, fontWeight: "900" }}>{formatMoney(pkg.price)}</Text>
-                            <Text style={{ color: "#64748B", fontSize: 12 }}>/{pkg.duration_days} days</Text>
+                            <Text style={{ color: "#8A90A0", fontSize: 12 }}>/{pkg.duration_days} days</Text>
                           </>
                         )}
                       </View>
@@ -105,7 +105,7 @@ export default function PackagesScreen() {
                       {features.map((f: string, i: number) => (
                         <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
                           <Ionicons name="checkmark-circle" size={16} color={color} style={{ marginTop: 1 }} />
-                          <Text style={{ color: "#CBD5E1", fontSize: 13, flex: 1 }}>{f}</Text>
+                          <Text style={{ color: "#4A5163", fontSize: 13, flex: 1 }}>{f}</Text>
                         </View>
                       ))}
                     </View>
@@ -117,8 +117,8 @@ export default function PackagesScreen() {
                       </TouchableOpacity>
                     )}
                     {pkg.is_free && !currentSub && (
-                      <View style={{ backgroundColor: "#22C55E20", borderRadius: 14, paddingVertical: 12, alignItems: "center", borderWidth: 1, borderColor: "#22C55E40" }}>
-                        <Text style={{ color: "#22C55E", fontWeight: "700" }}>✓ Your current plan</Text>
+                      <View style={{ backgroundColor: "#16A34A20", borderRadius: 14, paddingVertical: 12, alignItems: "center", borderWidth: 1, borderColor: "#16A34A40" }}>
+                        <Text style={{ color: "#16A34A", fontWeight: "700" }}>✓ Your current plan</Text>
                       </View>
                     )}
                   </View>
@@ -132,24 +132,24 @@ export default function PackagesScreen() {
       {/* Purchase modal */}
       {selectedPkg && (
         <View style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: "#1E293B", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: insets.bottom + 24 }}>
-            <Text style={{ color: "#F8FAFC", fontSize: 22, fontWeight: "900", marginBottom: 4 }}>{selectedPkg.name}</Text>
-            <Text style={{ color: "#F97316", fontSize: 28, fontWeight: "900", marginBottom: 20 }}>{formatMoney(selectedPkg.price)}</Text>
+          <View style={{ backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: insets.bottom + 24 }}>
+            <Text style={{ color: "#1B2036", fontSize: 22, fontWeight: "900", marginBottom: 4 }}>{selectedPkg.name}</Text>
+            <Text style={{ color: "#EC7C2C", fontSize: 28, fontWeight: "900", marginBottom: 20 }}>{formatMoney(selectedPkg.price)}</Text>
 
-            <Text style={{ color: "#94A3B8", fontSize: 12, fontWeight: "600", marginBottom: 8 }}>Mobile Money Number</Text>
-            <View style={{ backgroundColor: "#0F172A", borderWidth: 1, borderColor: "#334155", borderRadius: 14, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-              <Text style={{ color: "#94A3B8", marginRight: 8 }}>🇹🇿</Text>
-              <TextInput value={phone} onChangeText={setPhone} placeholder="0712 345 678" placeholderTextColor="#475569" keyboardType="phone-pad"
-                style={{ flex: 1, color: "#F8FAFC", fontSize: 15, paddingVertical: 15 }} />
+            <Text style={{ color: "#6B7280", fontSize: 12, fontWeight: "600", marginBottom: 8 }}>Mobile Money Number</Text>
+            <View style={{ backgroundColor: "#F4F5F8", borderWidth: 1, borderColor: "#E6E8EE", borderRadius: 14, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+              <Text style={{ color: "#6B7280", marginRight: 8 }}>🇹🇿</Text>
+              <TextInput value={phone} onChangeText={setPhone} placeholder="0712 345 678" placeholderTextColor="#A0A6B4" keyboardType="phone-pad"
+                style={{ flex: 1, color: "#1B2036", fontSize: 15, paddingVertical: 15 }} />
             </View>
 
             <View style={{ gap: 10 }}>
               <TouchableOpacity onPress={() => buyMutation.mutate()} disabled={buyMutation.isPending || !phone}
-                style={{ backgroundColor: "#F97316", borderRadius: 14, paddingVertical: 17, alignItems: "center", opacity: !phone ? 0.5 : 1 }}>
+                style={{ backgroundColor: "#2E3A74", borderRadius: 14, paddingVertical: 17, alignItems: "center", opacity: !phone ? 0.5 : 1 }}>
                 {buyMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Pay {formatMoney(selectedPkg.price)}</Text>}
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setSelectedPkg(null)} style={{ paddingVertical: 14, alignItems: "center" }}>
-                <Text style={{ color: "#64748B", fontWeight: "700" }}>Cancel</Text>
+                <Text style={{ color: "#8A90A0", fontWeight: "700" }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>

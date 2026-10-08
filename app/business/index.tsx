@@ -14,11 +14,11 @@ import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatMoney, timeAgo, getStatusColor } from "@/lib/utils";
 
-const ORANGE = "#F97316";
+const ORANGE = "#EC7C2C";
 const BLUE   = "#2563EB";
-const NAVY   = "#0F172A";
-const CARD   = "#1E293B";
-const BORDER = "#334155";
+const NAVY   = "#F4F5F8";
+const CARD   = "#FFFFFF";
+const BORDER = "#E6E8EE";
 
 type Tab = "home" | "analytics" | "upload" | "wallet";
 
@@ -90,13 +90,13 @@ export default function SellerDashboardScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: NAVY }}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       {/* Top bar */}
       <View style={{ paddingTop: insets.top + 8, paddingBottom: 12, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: 1, borderBottomColor: CARD }}>
         <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color={ORANGE} /></TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: "#F8FAFC", fontSize: 18, fontWeight: "800" }}>Seller Dashboard</Text>
-          <Text style={{ color: "#64748B", fontSize: 12 }}>{user?.name}</Text>
+          <Text style={{ color: "#1B2036", fontSize: 18, fontWeight: "800" }}>Seller Dashboard</Text>
+          <Text style={{ color: "#8A90A0", fontSize: 12 }}>{user?.name}</Text>
         </View>
         <TouchableOpacity onPress={() => router.push("/seller-chat")} style={{ backgroundColor: CARD, borderRadius: 12, padding: 9 }}>
           <Ionicons name="chatbubbles-outline" size={20} color={ORANGE} />
@@ -138,9 +138,9 @@ export default function SellerDashboardScreen() {
           return (
             <TouchableOpacity key={t.key} onPress={() => setTab(t.key)} style={{ flex: 1, alignItems: "center", gap: 3 }}>
               <View style={{ backgroundColor: active ? ORANGE + "22" : "transparent", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 5 }}>
-                <Ionicons name={(active ? t.icon : t.icon + "-outline") as any} size={22} color={active ? ORANGE : "#64748B"} />
+                <Ionicons name={(active ? t.icon : t.icon + "-outline") as any} size={22} color={active ? ORANGE : "#8A90A0"} />
               </View>
-              <Text style={{ color: active ? ORANGE : "#64748B", fontSize: 11, fontWeight: active ? "800" : "600" }}>{t.label}</Text>
+              <Text style={{ color: active ? ORANGE : "#8A90A0", fontSize: 11, fontWeight: active ? "800" : "600" }}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -159,9 +159,9 @@ function HomeTab({ balance, totalRevenue, todaySales, targetPct, pendingOrders, 
       amount: "+" + formatMoney(o.total_price), tag: (ORDER_LABELS[o.status] || o.status).toUpperCase(), tagColor: getStatusColor(o.status),
     }));
     withdrawals.slice(0, 2).forEach((w: any) => items.push({
-      id: "w" + w.id, icon: "arrow-up-circle-outline", color: "#F59E0B",
+      id: "w" + w.id, icon: "arrow-up-circle-outline", color: "#E0950B",
       title: "Withdrawal", time: w.created_at, amount: "-" + formatMoney(w.amount),
-      tag: w.status.toUpperCase(), tagColor: w.status === "completed" ? "#22C55E" : "#F59E0B",
+      tag: w.status.toUpperCase(), tagColor: w.status === "completed" ? "#16A34A" : "#E0950B",
     }));
     return items.sort((a, b) => +new Date(b.time) - +new Date(a.time)).slice(0, 5);
   }, [orders, withdrawals]);
@@ -187,36 +187,36 @@ function HomeTab({ balance, totalRevenue, todaySales, targetPct, pendingOrders, 
       {/* Today's Sales */}
       <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: BORDER }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ color: "#94A3B8", fontSize: 13 }}>Today's Sales</Text>
-          <Text style={{ color: "#22C55E", fontSize: 12, fontWeight: "700" }}>↗ {targetPct}%</Text>
+          <Text style={{ color: "#6B7280", fontSize: 13 }}>Today's Sales</Text>
+          <Text style={{ color: "#16A34A", fontSize: 12, fontWeight: "700" }}>↗ {targetPct}%</Text>
         </View>
-        <Text style={{ color: "#F8FAFC", fontSize: 26, fontWeight: "900", marginTop: 4 }}>{formatMoney(todaySales)}</Text>
-        <View style={{ height: 8, borderRadius: 4, backgroundColor: "#0F172A", marginTop: 12, overflow: "hidden" }}>
+        <Text style={{ color: "#1B2036", fontSize: 26, fontWeight: "900", marginTop: 4 }}>{formatMoney(todaySales)}</Text>
+        <View style={{ height: 8, borderRadius: 4, backgroundColor: "#F4F5F8", marginTop: 12, overflow: "hidden" }}>
           <View style={{ width: `${targetPct}%`, height: "100%", backgroundColor: "#14B8A6", borderRadius: 4 }} />
         </View>
-        <Text style={{ color: "#64748B", fontSize: 11, marginTop: 8 }}>{targetPct}% of daily target reached</Text>
+        <Text style={{ color: "#8A90A0", fontSize: 11, marginTop: 8 }}>{targetPct}% of daily target reached</Text>
       </View>
 
       {/* Pending / Success */}
       <View style={{ flexDirection: "row", gap: 12, marginBottom: 18 }}>
         <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: BORDER }}>
-          <Text style={{ color: "#94A3B8", fontSize: 12 }}>Pending</Text>
-          <Text style={{ color: "#F59E0B", fontSize: 26, fontWeight: "900", marginTop: 6 }}>{pendingOrders}</Text>
+          <Text style={{ color: "#6B7280", fontSize: 12 }}>Pending</Text>
+          <Text style={{ color: "#E0950B", fontSize: 26, fontWeight: "900", marginTop: 6 }}>{pendingOrders}</Text>
         </View>
         <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: BORDER }}>
-          <Text style={{ color: "#94A3B8", fontSize: 12 }}>Success</Text>
-          <Text style={{ color: "#22C55E", fontSize: 26, fontWeight: "900", marginTop: 6 }}>{successRate}%</Text>
+          <Text style={{ color: "#6B7280", fontSize: 12 }}>Success</Text>
+          <Text style={{ color: "#16A34A", fontSize: 26, fontWeight: "900", marginTop: 6 }}>{successRate}%</Text>
         </View>
       </View>
 
       {/* Recent Activity */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <Text style={{ color: "#F8FAFC", fontSize: 17, fontWeight: "800" }}>Recent Activity</Text>
+        <Text style={{ color: "#1B2036", fontSize: 17, fontWeight: "800" }}>Recent Activity</Text>
       </View>
       {activity.length === 0 ? (
         <View style={{ alignItems: "center", paddingVertical: 30 }}>
-          <Ionicons name="pulse-outline" size={40} color="#334155" />
-          <Text style={{ color: "#64748B", marginTop: 10 }}>No activity yet</Text>
+          <Ionicons name="pulse-outline" size={40} color="#E6E8EE" />
+          <Text style={{ color: "#8A90A0", marginTop: 10 }}>No activity yet</Text>
         </View>
       ) : activity.map((a) => (
         <View key={a.id} style={{ backgroundColor: CARD, borderRadius: 14, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: BORDER }}>
@@ -224,11 +224,11 @@ function HomeTab({ balance, totalRevenue, todaySales, targetPct, pendingOrders, 
             <Ionicons name={a.icon} size={20} color={a.color} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: "#F8FAFC", fontWeight: "700", fontSize: 14 }}>{a.title}</Text>
-            <Text style={{ color: "#64748B", fontSize: 11, marginTop: 2 }}>{timeAgo(a.time)}</Text>
+            <Text style={{ color: "#1B2036", fontWeight: "700", fontSize: 14 }}>{a.title}</Text>
+            <Text style={{ color: "#8A90A0", fontSize: 11, marginTop: 2 }}>{timeAgo(a.time)}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ color: a.amount.startsWith("-") ? "#EF4444" : "#22C55E", fontWeight: "800", fontSize: 13 }}>{a.amount}</Text>
+            <Text style={{ color: a.amount.startsWith("-") ? "#DC2626" : "#16A34A", fontWeight: "800", fontSize: 13 }}>{a.amount}</Text>
             <View style={{ backgroundColor: a.tagColor + "22", borderRadius: 5, paddingHorizontal: 6, paddingVertical: 1, marginTop: 3 }}>
               <Text style={{ color: a.tagColor, fontSize: 9, fontWeight: "800" }}>{a.tag}</Text>
             </View>
@@ -275,7 +275,7 @@ function AnalyticsTab({ orders, products, totalRevenue, totalOrders, sub }: any)
       <View style={{ flexDirection: "row", backgroundColor: CARD, borderRadius: 12, padding: 4, marginBottom: 16 }}>
         {(["Week", "Month", "Year"] as const).map((r) => (
           <TouchableOpacity key={r} onPress={() => setRange(r)} style={{ flex: 1, paddingVertical: 9, borderRadius: 9, backgroundColor: range === r ? ORANGE : "transparent", alignItems: "center" }}>
-            <Text style={{ color: range === r ? "#fff" : "#94A3B8", fontWeight: "700", fontSize: 13 }}>{r}</Text>
+            <Text style={{ color: range === r ? "#fff" : "#6B7280", fontWeight: "700", fontSize: 13 }}>{r}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -283,53 +283,53 @@ function AnalyticsTab({ orders, products, totalRevenue, totalOrders, sub }: any)
       {/* Stat tiles */}
       <View style={{ flexDirection: "row", gap: 12, marginBottom: 14 }}>
         <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: BORDER }}>
-          <Text style={{ color: "#94A3B8", fontSize: 12 }}>Total Orders</Text>
-          <Text style={{ color: "#F8FAFC", fontSize: 22, fontWeight: "900", marginTop: 6 }}>{totalOrders}</Text>
-          <Text style={{ color: "#22C55E", fontSize: 11, marginTop: 2 }}>↗ live</Text>
+          <Text style={{ color: "#6B7280", fontSize: 12 }}>Total Orders</Text>
+          <Text style={{ color: "#1B2036", fontSize: 22, fontWeight: "900", marginTop: 6 }}>{totalOrders}</Text>
+          <Text style={{ color: "#16A34A", fontSize: 11, marginTop: 2 }}>↗ live</Text>
         </View>
         <View style={{ flex: 1, backgroundColor: CARD, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: BORDER }}>
-          <Text style={{ color: "#94A3B8", fontSize: 12 }}>Conversion</Text>
-          <Text style={{ color: "#F8FAFC", fontSize: 22, fontWeight: "900", marginTop: 6 }}>{conversion}%</Text>
-          <Text style={{ color: "#22C55E", fontSize: 11, marginTop: 2 }}>paid orders</Text>
+          <Text style={{ color: "#6B7280", fontSize: 12 }}>Conversion</Text>
+          <Text style={{ color: "#1B2036", fontSize: 22, fontWeight: "900", marginTop: 6 }}>{conversion}%</Text>
+          <Text style={{ color: "#16A34A", fontSize: 11, marginTop: 2 }}>paid orders</Text>
         </View>
       </View>
 
       {/* Revenue Growth chart */}
       <View style={{ backgroundColor: CARD, borderRadius: 18, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: BORDER }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ color: "#94A3B8", fontSize: 13 }}>Revenue Growth</Text>
-          <View style={{ backgroundColor: "#0F172A", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
-            <Text style={{ color: "#64748B", fontSize: 10, fontWeight: "700" }}>LAST {range === "Year" ? "12 MO" : range === "Month" ? "30 DAYS" : "7 DAYS"}</Text>
+          <Text style={{ color: "#6B7280", fontSize: 13 }}>Revenue Growth</Text>
+          <View style={{ backgroundColor: "#F4F5F8", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+            <Text style={{ color: "#8A90A0", fontSize: 10, fontWeight: "700" }}>LAST {range === "Year" ? "12 MO" : range === "Month" ? "30 DAYS" : "7 DAYS"}</Text>
           </View>
         </View>
         <Text style={{ color: ORANGE, fontSize: 26, fontWeight: "900", marginTop: 6, marginBottom: 16 }}>{formatMoney(totalRevenue)}</Text>
         <View style={{ flexDirection: "row", alignItems: "flex-end", height: 120, gap: 4 }}>
           {series.map((s, i) => (
             <View key={i} style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-              <View style={{ width: "70%", height: `${Math.max(3, (s.value / maxVal) * 100)}%`, backgroundColor: s.value > 0 ? ORANGE : "#334155", borderTopLeftRadius: 4, borderTopRightRadius: 4 }} />
+              <View style={{ width: "70%", height: `${Math.max(3, (s.value / maxVal) * 100)}%`, backgroundColor: s.value > 0 ? ORANGE : "#E6E8EE", borderTopLeftRadius: 4, borderTopRightRadius: 4 }} />
             </View>
           ))}
         </View>
         <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
-          <Text style={{ color: "#475569", fontSize: 10 }}>{series[0]?.label}</Text>
-          <Text style={{ color: "#475569", fontSize: 10 }}>{series[Math.floor(series.length / 2)]?.label}</Text>
-          <Text style={{ color: "#475569", fontSize: 10 }}>{series[series.length - 1]?.label}</Text>
+          <Text style={{ color: "#A0A6B4", fontSize: 10 }}>{series[0]?.label}</Text>
+          <Text style={{ color: "#A0A6B4", fontSize: 10 }}>{series[Math.floor(series.length / 2)]?.label}</Text>
+          <Text style={{ color: "#A0A6B4", fontSize: 10 }}>{series[series.length - 1]?.label}</Text>
         </View>
       </View>
 
       {/* Top Performing */}
       <View style={{ backgroundColor: CARD, borderRadius: 18, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: BORDER }}>
-        <Text style={{ color: "#F8FAFC", fontSize: 15, fontWeight: "800", marginBottom: 14 }}>Top Performing Products</Text>
+        <Text style={{ color: "#1B2036", fontSize: 15, fontWeight: "800", marginBottom: 14 }}>Top Performing Products</Text>
         {topProducts.length === 0 ? (
-          <Text style={{ color: "#64748B", fontSize: 13 }}>No products yet — add some in the Upload tab.</Text>
+          <Text style={{ color: "#8A90A0", fontSize: 13 }}>No products yet — add some in the Upload tab.</Text>
         ) : topProducts.map((p: any) => (
           <View key={p.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 }}>
             <View style={{ width: 38, height: 38, borderRadius: 9, backgroundColor: ORANGE + "22", alignItems: "center", justifyContent: "center" }}>
               <Ionicons name="cube" size={18} color={ORANGE} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#F8FAFC", fontWeight: "700", fontSize: 14 }} numberOfLines={1}>{p.name}</Text>
-              <Text style={{ color: "#64748B", fontSize: 11 }}>{p.total_reviews || 0} reviews · ★ {parseFloat(p.avg_rating || 0).toFixed(1)}</Text>
+              <Text style={{ color: "#1B2036", fontWeight: "700", fontSize: 14 }} numberOfLines={1}>{p.name}</Text>
+              <Text style={{ color: "#8A90A0", fontSize: 11 }}>{p.total_reviews || 0} reviews · ★ {parseFloat(p.avg_rating || 0).toFixed(1)}</Text>
             </View>
             <Text style={{ color: ORANGE, fontWeight: "800", fontSize: 13 }}>{formatMoney(p.price)}</Text>
           </View>
@@ -337,13 +337,13 @@ function AnalyticsTab({ orders, products, totalRevenue, totalOrders, sub }: any)
       </View>
 
       {/* Insights */}
-      <Text style={{ color: "#64748B", fontSize: 11, fontWeight: "800", letterSpacing: 1, marginBottom: 8 }}>INSIGHTS & ALERTS</Text>
-      <View style={{ backgroundColor: "#0B1220", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#1E3A8A55" }}>
+      <Text style={{ color: "#8A90A0", fontSize: 11, fontWeight: "800", letterSpacing: 1, marginBottom: 8 }}>INSIGHTS & ALERTS</Text>
+      <View style={{ backgroundColor: "#2E3A74", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#2E3A74" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <Ionicons name="sparkles" size={16} color={BLUE} />
           <Text style={{ color: BLUE, fontWeight: "800", fontSize: 14 }}>Optimization Tip</Text>
         </View>
-        <Text style={{ color: "#94A3B8", fontSize: 13, lineHeight: 19 }}>
+        <Text style={{ color: "#6B7280", fontSize: 13, lineHeight: 19 }}>
           {sub && sub.package_id !== "seller_free"
             ? "You're on a paid plan — your products get featured priority. Keep stock updated to maximise conversion."
             : "Upgrade your plan to get featured placement and reach more customers. Tap Packages in your profile."}
@@ -393,12 +393,12 @@ function UploadTab({ api, cats, onDone }: any) {
   const selectedCat = cats.find((c: any) => c.id === categoryId);
   const canSubmit = name.trim() && price.trim() && !submit.isPending;
 
-  const inputStyle = { backgroundColor: NAVY, borderWidth: 1, borderColor: BORDER, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, color: "#F8FAFC", fontSize: 15 } as const;
+  const inputStyle = { backgroundColor: NAVY, borderWidth: 1, borderColor: BORDER, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, color: "#1B2036", fontSize: 15 } as const;
 
   return (
     <>
-      <Text style={{ color: "#F8FAFC", fontSize: 22, fontWeight: "900" }}>Upload Product</Text>
-      <Text style={{ color: "#64748B", fontSize: 13, marginTop: 2, marginBottom: 18 }}>Add new inventory items to your storefront.</Text>
+      <Text style={{ color: "#1B2036", fontSize: 22, fontWeight: "900" }}>Upload Product</Text>
+      <Text style={{ color: "#8A90A0", fontSize: 13, marginTop: 2, marginBottom: 18 }}>Add new inventory items to your storefront.</Text>
 
       {/* Drop zone */}
       <TouchableOpacity onPress={pickImages} activeOpacity={0.8}
@@ -406,14 +406,14 @@ function UploadTab({ api, cats, onDone }: any) {
         <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: CARD, alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
           <Ionicons name="camera-outline" size={26} color={ORANGE} />
         </View>
-        <Text style={{ color: "#F8FAFC", fontWeight: "700", fontSize: 14 }}>Tap to select images</Text>
+        <Text style={{ color: "#1B2036", fontWeight: "700", fontSize: 14 }}>Tap to select images</Text>
         <Text style={{ color: ORANGE, fontSize: 12, marginTop: 4 }}>High resolution PNG, JPG · up to 6</Text>
       </TouchableOpacity>
 
       {images.length > 0 && (
         <>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-            <Text style={{ color: "#94A3B8", fontSize: 11, fontWeight: "800", letterSpacing: 0.5 }}>GALLERY</Text>
+            <Text style={{ color: "#6B7280", fontSize: 11, fontWeight: "800", letterSpacing: 0.5 }}>GALLERY</Text>
             <Text style={{ color: ORANGE, fontSize: 11, fontWeight: "700" }}>{6 - images.length} slots left</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }} contentContainerStyle={{ gap: 10 }}>
@@ -421,7 +421,7 @@ function UploadTab({ api, cats, onDone }: any) {
               <View key={i} style={{ width: 96 }}>
                 <Image source={{ uri }} style={{ width: 96, height: 96, borderRadius: 12, backgroundColor: CARD }} contentFit="cover" />
                 <TouchableOpacity onPress={() => setImages((p) => p.filter((_, idx) => idx !== i))}
-                  style={{ position: "absolute", top: -6, right: -6, backgroundColor: "#EF4444", borderRadius: 11, width: 22, height: 22, alignItems: "center", justifyContent: "center" }}>
+                  style={{ position: "absolute", top: -6, right: -6, backgroundColor: "#DC2626", borderRadius: 11, width: 22, height: 22, alignItems: "center", justifyContent: "center" }}>
                   <Ionicons name="close" size={14} color="#fff" />
                 </TouchableOpacity>
               </View>
@@ -431,36 +431,36 @@ function UploadTab({ api, cats, onDone }: any) {
       )}
 
       {/* Form */}
-      <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Product Name *</Text>
-      <TextInput value={name} onChangeText={setName} placeholder="e.g. Premium Leather Satchel" placeholderTextColor="#475569" style={[inputStyle, { marginBottom: 14 }]} />
+      <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Product Name *</Text>
+      <TextInput value={name} onChangeText={setName} placeholder="e.g. Premium Leather Satchel" placeholderTextColor="#A0A6B4" style={[inputStyle, { marginBottom: 14 }]} />
 
-      <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Description</Text>
-      <TextInput value={description} onChangeText={setDescription} placeholder="Describe the item features and specifications…" placeholderTextColor="#475569"
+      <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Description</Text>
+      <TextInput value={description} onChangeText={setDescription} placeholder="Describe the item features and specifications…" placeholderTextColor="#A0A6B4"
         multiline numberOfLines={4} style={[inputStyle, { marginBottom: 14, height: 96, textAlignVertical: "top" }]} />
 
       <View style={{ flexDirection: "row", gap: 12, marginBottom: 14 }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Price (TZS) *</Text>
-          <TextInput value={price} onChangeText={setPrice} placeholder="0" placeholderTextColor="#475569" keyboardType="numeric" style={inputStyle} />
+          <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Price (TZS) *</Text>
+          <TextInput value={price} onChangeText={setPrice} placeholder="0" placeholderTextColor="#A0A6B4" keyboardType="numeric" style={inputStyle} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Stock</Text>
-          <TextInput value={stock} onChangeText={setStock} placeholder="0" placeholderTextColor="#475569" keyboardType="numeric" style={inputStyle} />
+          <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Stock</Text>
+          <TextInput value={stock} onChangeText={setStock} placeholder="0" placeholderTextColor="#A0A6B4" keyboardType="numeric" style={inputStyle} />
         </View>
       </View>
 
-      <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Category</Text>
+      <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 6 }}>Category</Text>
       <TouchableOpacity onPress={() => setShowCats((s) => !s)} style={[inputStyle, { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: showCats ? 0 : 18 }]}>
-        <Text style={{ color: selectedCat ? "#F8FAFC" : "#475569", fontSize: 15 }}>{selectedCat?.name || "Select category"}</Text>
-        <Ionicons name={showCats ? "chevron-up" : "chevron-down"} size={18} color="#64748B" />
+        <Text style={{ color: selectedCat ? "#1B2036" : "#A0A6B4", fontSize: 15 }}>{selectedCat?.name || "Select category"}</Text>
+        <Ionicons name={showCats ? "chevron-up" : "chevron-down"} size={18} color="#8A90A0" />
       </TouchableOpacity>
       {showCats && (
         <View style={{ backgroundColor: NAVY, borderWidth: 1, borderColor: BORDER, borderRadius: 12, marginTop: 6, marginBottom: 18, overflow: "hidden" }}>
           {cats.map((c: any) => (
             <TouchableOpacity key={c.id} onPress={() => { setCategoryId(c.id); setShowCats(false); }}
               style={{ paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: CARD, flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Ionicons name={(c.icon || "grid-outline") as any} size={16} color={c.color || "#94A3B8"} />
-              <Text style={{ color: "#F8FAFC", fontSize: 14 }}>{c.name}</Text>
+              <Ionicons name={(c.icon || "grid-outline") as any} size={16} color={c.color || "#6B7280"} />
+              <Text style={{ color: "#1B2036", fontSize: 14 }}>{c.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -501,7 +501,7 @@ function WalletTab({ api, balance, totalSales, withdrawals, onDone }: any) {
 
   const quick = [50000, 100000, 200000];
   const valid = parseFloat(amount) >= 1000 && (method === "mobile_money" ? mobile.trim().length >= 9 : (accountNumber.trim() && bankName.trim()));
-  const inputStyle = { backgroundColor: NAVY, borderWidth: 1, borderColor: BORDER, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, color: "#F8FAFC", fontSize: 15 } as const;
+  const inputStyle = { backgroundColor: NAVY, borderWidth: 1, borderColor: BORDER, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, color: "#1B2036", fontSize: 15 } as const;
 
   return (
     <>
@@ -517,17 +517,17 @@ function WalletTab({ api, balance, totalSales, withdrawals, onDone }: any) {
 
       {/* Amount */}
       <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: BORDER }}>
-        <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 8 }}>Withdrawal Amount</Text>
+        <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 8 }}>Withdrawal Amount</Text>
         <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: NAVY, borderWidth: 1, borderColor: BORDER, borderRadius: 12, paddingHorizontal: 14 }}>
-          <Text style={{ color: "#64748B", fontSize: 16, fontWeight: "700" }}>TZS</Text>
-          <TextInput value={amount} onChangeText={setAmount} placeholder="0" placeholderTextColor="#475569" keyboardType="numeric"
-            style={{ flex: 1, color: "#F8FAFC", fontSize: 20, fontWeight: "800", paddingVertical: 12, marginLeft: 8 }} />
+          <Text style={{ color: "#8A90A0", fontSize: 16, fontWeight: "700" }}>TZS</Text>
+          <TextInput value={amount} onChangeText={setAmount} placeholder="0" placeholderTextColor="#A0A6B4" keyboardType="numeric"
+            style={{ flex: 1, color: "#1B2036", fontSize: 20, fontWeight: "800", paddingVertical: 12, marginLeft: 8 }} />
         </View>
         <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
           {quick.map((q) => (
             <TouchableOpacity key={q} onPress={() => setAmount(String(q))}
               style={{ flex: 1, backgroundColor: NAVY, borderWidth: 1, borderColor: amount === String(q) ? ORANGE : BORDER, borderRadius: 10, paddingVertical: 10, alignItems: "center" }}>
-              <Text style={{ color: amount === String(q) ? ORANGE : "#94A3B8", fontWeight: "700", fontSize: 13 }}>{(q / 1000)}k</Text>
+              <Text style={{ color: amount === String(q) ? ORANGE : "#6B7280", fontWeight: "700", fontSize: 13 }}>{(q / 1000)}k</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -535,27 +535,27 @@ function WalletTab({ api, balance, totalSales, withdrawals, onDone }: any) {
 
       {/* Method */}
       <View style={{ backgroundColor: CARD, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: BORDER }}>
-        <Text style={{ color: "#94A3B8", fontSize: 13, fontWeight: "700", marginBottom: 10 }}>Withdraw to</Text>
+        <Text style={{ color: "#6B7280", fontSize: 13, fontWeight: "700", marginBottom: 10 }}>Withdraw to</Text>
         <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
           {([["mobile_money", "phone-portrait-outline", "Mobile Money"], ["bank", "business-outline", "Bank"]] as const).map(([m, ic, label]) => (
             <TouchableOpacity key={m} onPress={() => setMethod(m as any)}
               style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: method === m ? ORANGE : BORDER, backgroundColor: method === m ? ORANGE + "15" : NAVY }}>
-              <Ionicons name={ic as any} size={18} color={method === m ? ORANGE : "#64748B"} />
-              <Text style={{ color: method === m ? ORANGE : "#94A3B8", fontWeight: "700", fontSize: 13 }}>{label}</Text>
+              <Ionicons name={ic as any} size={18} color={method === m ? ORANGE : "#8A90A0"} />
+              <Text style={{ color: method === m ? ORANGE : "#6B7280", fontWeight: "700", fontSize: 13 }}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {method === "mobile_money" ? (
           <>
-            <TextInput value={mobile} onChangeText={setMobile} placeholder="Mobile money number (07XX XXX XXX)" placeholderTextColor="#475569" keyboardType="phone-pad" style={[inputStyle, { marginBottom: 10 }]} />
-            <TextInput value={accountName} onChangeText={setAccountName} placeholder="Account holder name" placeholderTextColor="#475569" style={inputStyle} />
+            <TextInput value={mobile} onChangeText={setMobile} placeholder="Mobile money number (07XX XXX XXX)" placeholderTextColor="#A0A6B4" keyboardType="phone-pad" style={[inputStyle, { marginBottom: 10 }]} />
+            <TextInput value={accountName} onChangeText={setAccountName} placeholder="Account holder name" placeholderTextColor="#A0A6B4" style={inputStyle} />
           </>
         ) : (
           <>
-            <TextInput value={bankName} onChangeText={setBankName} placeholder="Bank name (e.g. CRDB, NMB)" placeholderTextColor="#475569" style={[inputStyle, { marginBottom: 10 }]} />
-            <TextInput value={accountNumber} onChangeText={setAccountNumber} placeholder="Account number" placeholderTextColor="#475569" keyboardType="numeric" style={[inputStyle, { marginBottom: 10 }]} />
-            <TextInput value={accountName} onChangeText={setAccountName} placeholder="Account holder name" placeholderTextColor="#475569" style={inputStyle} />
+            <TextInput value={bankName} onChangeText={setBankName} placeholder="Bank name (e.g. CRDB, NMB)" placeholderTextColor="#A0A6B4" style={[inputStyle, { marginBottom: 10 }]} />
+            <TextInput value={accountNumber} onChangeText={setAccountNumber} placeholder="Account number" placeholderTextColor="#A0A6B4" keyboardType="numeric" style={[inputStyle, { marginBottom: 10 }]} />
+            <TextInput value={accountName} onChangeText={setAccountName} placeholder="Account holder name" placeholderTextColor="#A0A6B4" style={inputStyle} />
           </>
         )}
       </View>
@@ -564,29 +564,29 @@ function WalletTab({ api, balance, totalSales, withdrawals, onDone }: any) {
         style={{ backgroundColor: BLUE, borderRadius: 14, paddingVertical: 16, alignItems: "center", marginBottom: 8, opacity: valid && !submit.isPending ? 1 : 0.5 }}>
         {submit.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Confirm Withdrawal</Text>}
       </TouchableOpacity>
-      <Text style={{ color: "#64748B", fontSize: 11, textAlign: "center", marginBottom: 20 }}>Minimum TZS 1,000 · Mobile money arrives within minutes.</Text>
+      <Text style={{ color: "#8A90A0", fontSize: 11, textAlign: "center", marginBottom: 20 }}>Minimum TZS 1,000 · Mobile money arrives within minutes.</Text>
 
       {/* Recent withdrawals */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <Text style={{ color: "#F8FAFC", fontSize: 16, fontWeight: "800" }}>Recent Withdrawals</Text>
+        <Text style={{ color: "#1B2036", fontSize: 16, fontWeight: "800" }}>Recent Withdrawals</Text>
       </View>
       {withdrawals.length === 0 ? (
         <View style={{ alignItems: "center", paddingVertical: 24 }}>
-          <Ionicons name="receipt-outline" size={36} color="#334155" />
-          <Text style={{ color: "#64748B", marginTop: 8, fontSize: 13 }}>No withdrawals yet</Text>
+          <Ionicons name="receipt-outline" size={36} color="#E6E8EE" />
+          <Text style={{ color: "#8A90A0", marginTop: 8, fontSize: 13 }}>No withdrawals yet</Text>
         </View>
       ) : withdrawals.map((w: any) => (
         <View key={w.id} style={{ backgroundColor: CARD, borderRadius: 14, padding: 14, marginBottom: 10, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: BORDER }}>
-          <View style={{ width: 38, height: 38, borderRadius: 9, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center" }}>
-            <Ionicons name={w.method === "bank" ? "business-outline" : "phone-portrait-outline"} size={18} color="#94A3B8" />
+          <View style={{ width: 38, height: 38, borderRadius: 9, backgroundColor: "#F4F5F8", alignItems: "center", justifyContent: "center" }}>
+            <Ionicons name={w.method === "bank" ? "business-outline" : "phone-portrait-outline"} size={18} color="#6B7280" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: "#F8FAFC", fontWeight: "700", fontSize: 14 }}>{w.bank_name || "Mobile Money"}</Text>
-            <Text style={{ color: "#64748B", fontSize: 11, marginTop: 2 }}>{timeAgo(w.created_at)}</Text>
+            <Text style={{ color: "#1B2036", fontWeight: "700", fontSize: 14 }}>{w.bank_name || "Mobile Money"}</Text>
+            <Text style={{ color: "#8A90A0", fontSize: 11, marginTop: 2 }}>{timeAgo(w.created_at)}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ color: "#EF4444", fontWeight: "800", fontSize: 13 }}>-{formatMoney(w.amount)}</Text>
-            <Text style={{ color: w.status === "completed" ? "#22C55E" : w.status === "failed" ? "#EF4444" : "#F59E0B", fontSize: 10, fontWeight: "700", marginTop: 2, textTransform: "capitalize" }}>{w.status}</Text>
+            <Text style={{ color: "#DC2626", fontWeight: "800", fontSize: 13 }}>-{formatMoney(w.amount)}</Text>
+            <Text style={{ color: w.status === "completed" ? "#16A34A" : w.status === "failed" ? "#DC2626" : "#E0950B", fontSize: 10, fontWeight: "700", marginTop: 2, textTransform: "capitalize" }}>{w.status}</Text>
           </View>
         </View>
       ))}

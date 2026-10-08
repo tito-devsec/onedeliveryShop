@@ -38,10 +38,10 @@ export default function NewConversationScreen() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center", gap: 14 }}>
-      <StatusBar style="light" />
-      <ActivityIndicator color="#F97316" size="large" />
-      <Text style={{ color: "#94A3B8" }}>Connecting you to support…</Text>
+    <View style={{ flex: 1, backgroundColor: "#F4F5F8", alignItems: "center", justifyContent: "center", gap: 14 }}>
+      <StatusBar style="dark" />
+      <ActivityIndicator color="#EC7C2C" size="large" />
+      <Text style={{ color: "#6B7280" }}>Connecting you to support…</Text>
     </View>
   );
 }

@@ -105,16 +105,16 @@ export default function TrackingScreen() {
   };
 
   if (isLoading) return (
-    <View style={{ flex: 1, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center" }}>
-      <StatusBar style="light" />
-      <View style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 4, borderColor: "#F97316", borderTopColor: "transparent" }} />
-      <Text style={{ color: "#94A3B8", marginTop: 16 }}>Loading tracking…</Text>
+    <View style={{ flex: 1, backgroundColor: "#F4F5F8", alignItems: "center", justifyContent: "center" }}>
+      <StatusBar style="dark" />
+      <View style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 4, borderColor: "#EC7C2C", borderTopColor: "transparent" }} />
+      <Text style={{ color: "#6B7280", marginTop: 16 }}>Loading tracking…</Text>
     </View>
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0F172A" }}>
-      <StatusBar style="light" />
+    <View style={{ flex: 1, backgroundColor: "#F4F5F8" }}>
+      <StatusBar style="dark" />
 
       {/* Map (top half) */}
       <View style={{ height: "50%" }}>
@@ -128,7 +128,7 @@ export default function TrackingScreen() {
           {/* Pickup */}
           {ride?.pickup_lat && ride?.pickup_lng && (
             <Marker coordinate={{ latitude: ride.pickup_lat, longitude: ride.pickup_lng }} title="Pickup">
-              <View style={{ backgroundColor: "#22C55E", borderRadius: 20, padding: 8 }}>
+              <View style={{ backgroundColor: "#16A34A", borderRadius: 20, padding: 8 }}>
                 <Ionicons name="storefront" size={18} color="#fff" />
               </View>
             </Marker>
@@ -136,7 +136,7 @@ export default function TrackingScreen() {
           {/* Dropoff */}
           {ride?.dropoff_lat && ride?.dropoff_lng && (
             <Marker coordinate={{ latitude: ride.dropoff_lat, longitude: ride.dropoff_lng }} title="Your location">
-              <View style={{ backgroundColor: "#F97316", borderRadius: 20, padding: 8 }}>
+              <View style={{ backgroundColor: "#EC7C2C", borderRadius: 20, padding: 8 }}>
                 <Ionicons name="home" size={18} color="#fff" />
               </View>
             </Marker>
@@ -144,7 +144,7 @@ export default function TrackingScreen() {
           {/* Live driver */}
           {driverLat && driverLng && (
             <Marker coordinate={{ latitude: driverLat, longitude: driverLng }} title="Driver">
-              <View style={{ backgroundColor: "#0F172A", borderRadius: 24, padding: 10, borderWidth: 2, borderColor: "#F97316" }}>
+              <View style={{ backgroundColor: "#F4F5F8", borderRadius: 24, padding: 10, borderWidth: 2, borderColor: "#EC7C2C" }}>
                 <Text style={{ fontSize: 20 }}>{vehicleEmoji(ride?.vehicle_type)}</Text>
               </View>
             </Marker>
@@ -157,7 +157,7 @@ export default function TrackingScreen() {
                 ...(driverLat ? [{ latitude: driverLat, longitude: driverLng! }] : []),
                 { latitude: ride.dropoff_lat, longitude: ride.dropoff_lng },
               ]}
-              strokeColor="#F97316"
+              strokeColor="#EC7C2C"
               strokeWidth={3}
               lineDashPattern={[6, 4]}
             />
@@ -166,15 +166,15 @@ export default function TrackingScreen() {
 
         {/* Back button */}
         <TouchableOpacity onPress={() => router.back()}
-          style={{ position: "absolute", top: insets.top + 12, left: 16, backgroundColor: "#0F172AE0", borderRadius: 14, padding: 10, borderWidth: 1, borderColor: "#334155" }}>
-          <Ionicons name="arrow-back" size={22} color="#F8FAFC" />
+          style={{ position: "absolute", top: insets.top + 12, left: 16, backgroundColor: "#FFFFFFEB", borderRadius: 14, padding: 10, borderWidth: 1, borderColor: "#E6E8EE" }}>
+          <Ionicons name="arrow-back" size={22} color="#1B2036" />
         </TouchableOpacity>
 
         {/* Live badge */}
         {isLive && (
-          <View style={{ position: "absolute", top: insets.top + 12, right: 16, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#0F172AE0", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "#22C55E40" }}>
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#22C55E" }} />
-            <Text style={{ color: "#22C55E", fontSize: 12, fontWeight: "700" }}>LIVE</Text>
+          <View style={{ position: "absolute", top: insets.top + 12, right: 16, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#FFFFFFEB", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "#16A34A40" }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#16A34A" }} />
+            <Text style={{ color: "#16A34A", fontSize: 12, fontWeight: "700" }}>LIVE</Text>
           </View>
         )}
       </View>
@@ -182,31 +182,31 @@ export default function TrackingScreen() {
       {/* Bottom panel */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 20 }}>
         {/* Status message */}
-        <View style={{ backgroundColor: "#1E293B", borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "#334155" }}>
-          <Text style={{ color: "#F8FAFC", fontSize: 15, fontWeight: "700", marginBottom: 4 }}>
+        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "#E6E8EE" }}>
+          <Text style={{ color: "#1B2036", fontSize: 15, fontWeight: "700", marginBottom: 4 }}>
             {STATUS_MESSAGES[ride?.status || "searching"]}
           </Text>
-          <Text style={{ color: "#64748B", fontSize: 13 }}>{vehicleEmoji(ride?.vehicle_type)} {ride?.vehicle_type} · {ride?.distance_km} km · {formatMoney(ride?.fare)}</Text>
+          <Text style={{ color: "#8A90A0", fontSize: 13 }}>{vehicleEmoji(ride?.vehicle_type)} {ride?.vehicle_type} · {ride?.distance_km} km · {formatMoney(ride?.fare)}</Text>
         </View>
 
         {/* Progress steps */}
-        <View style={{ backgroundColor: "#1E293B", borderRadius: 16, padding: 16, marginBottom: 16 }}>
+        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 16 }}>
           {STATUS_STEPS.map((step, idx) => {
             const done    = currentStepIndex > idx;
             const current = currentStepIndex === idx;
             return (
               <View key={step.key} style={{ flexDirection: "row", alignItems: "center", marginBottom: idx < STATUS_STEPS.length - 1 ? 16 : 0 }}>
-                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: done ? "#22C55E" : current ? "#F97316" : "#334155", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: done ? "#16A34A" : current ? "#EC7C2C" : "#E6E8EE", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
                   {done ? (
                     <Ionicons name="checkmark" size={16} color="#fff" />
                   ) : (
-                    <Ionicons name={step.icon as any} size={16} color={current ? "#fff" : "#64748B"} />
+                    <Ionicons name={step.icon as any} size={16} color={current ? "#fff" : "#8A90A0"} />
                   )}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: done || current ? "#F8FAFC" : "#64748B", fontWeight: current ? "800" : "500", fontSize: 14 }}>{step.label}</Text>
+                  <Text style={{ color: done || current ? "#1B2036" : "#8A90A0", fontWeight: current ? "800" : "500", fontSize: 14 }}>{step.label}</Text>
                 </View>
-                {current && isLive && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#F97316" }} />}
+                {current && isLive && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#EC7C2C" }} />}
               </View>
             );
           })}
@@ -214,28 +214,28 @@ export default function TrackingScreen() {
 
         {/* Driver card */}
         {ride?.driver_name && (
-          <View style={{ backgroundColor: "#1E293B", borderRadius: 16, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 14 }}>
-            <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: "#334155", alignItems: "center", justifyContent: "center" }}>
+          <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: "#E6E8EE", alignItems: "center", justifyContent: "center" }}>
               <Text style={{ fontSize: 22 }}>{vehicleEmoji(ride.vehicle_type)}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: "#F8FAFC", fontWeight: "800", fontSize: 16 }}>{ride.driver_name}</Text>
-              {ride.plate_number && <Text style={{ color: "#94A3B8", fontSize: 13 }}>{ride.plate_number}</Text>}
+              <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 16 }}>{ride.driver_name}</Text>
+              {ride.plate_number && <Text style={{ color: "#6B7280", fontSize: 13 }}>{ride.plate_number}</Text>}
               {ride.driver_rating_avg && (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                  <Text style={{ color: "#F59E0B" }}>★</Text>
-                  <Text style={{ color: "#94A3B8", fontSize: 12 }}>{ride.driver_rating_avg}</Text>
+                  <Text style={{ color: "#E0950B" }}>★</Text>
+                  <Text style={{ color: "#6B7280", fontSize: 12 }}>{ride.driver_rating_avg}</Text>
                 </View>
               )}
             </View>
             <View style={{ flexDirection: "row", gap: 10 }}>
               {ride.driver_phone && (
-                <TouchableOpacity onPress={callDriver} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#22C55E20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#22C55E40" }}>
-                  <Ionicons name="call" size={18} color="#22C55E" />
+                <TouchableOpacity onPress={callDriver} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#16A34A20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#16A34A40" }}>
+                  <Ionicons name="call" size={18} color="#16A34A" />
                 </TouchableOpacity>
               )}
-              <TouchableOpacity onPress={openChat} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#3B82F620", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#3B82F640" }}>
-                <Ionicons name="chatbubble" size={18} color="#3B82F6" />
+              <TouchableOpacity onPress={openChat} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#2563EB20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#2563EB40" }}>
+                <Ionicons name="chatbubble" size={18} color="#2563EB" />
               </TouchableOpacity>
             </View>
           </View>
@@ -245,20 +245,20 @@ export default function TrackingScreen() {
         {ride?.status === "delivered" && (
           <View style={{ gap: 10 }}>
             <TouchableOpacity onPress={() => router.push({ pathname: `/ride/${rideId}/rate` as any })}
-              style={{ backgroundColor: "#F97316", borderRadius: 14, paddingVertical: 16, alignItems: "center" }}>
+              style={{ backgroundColor: "#2E3A74", borderRadius: 14, paddingVertical: 16, alignItems: "center" }}>
               <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>⭐ Rate your driver</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.replace("/(tabs)")}
-              style={{ backgroundColor: "#1E293B", borderRadius: 14, paddingVertical: 16, alignItems: "center", borderWidth: 1, borderColor: "#334155" }}>
-              <Text style={{ color: "#94A3B8", fontWeight: "700" }}>Back to Home</Text>
+              style={{ backgroundColor: "#FFFFFF", borderRadius: 14, paddingVertical: 16, alignItems: "center", borderWidth: 1, borderColor: "#E6E8EE" }}>
+              <Text style={{ color: "#6B7280", fontWeight: "700" }}>Back to Home</Text>
             </TouchableOpacity>
           </View>
         )}
         {(ride?.status === "cancelled" || ride?.status === "no_driver") && (
           <View style={{ gap: 10 }}>
             <TouchableOpacity onPress={() => router.replace("/(tabs)")}
-              style={{ backgroundColor: "#1E293B", borderRadius: 14, paddingVertical: 16, alignItems: "center" }}>
-              <Text style={{ color: "#94A3B8", fontWeight: "700" }}>Back to Home</Text>
+              style={{ backgroundColor: "#FFFFFF", borderRadius: 14, paddingVertical: 16, alignItems: "center" }}>
+              <Text style={{ color: "#6B7280", fontWeight: "700" }}>Back to Home</Text>
             </TouchableOpacity>
           </View>
         )}

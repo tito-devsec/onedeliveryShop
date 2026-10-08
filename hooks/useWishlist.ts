@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 const useWishlist = () => {
   const api = useApi();
+  const { isSignedIn } = useAuth();
   const qc  = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["wishlist"],
+    enabled: isSignedIn,
     queryFn: async () => {
       const { data } = await api.get("/users/wishlist");
       return data.wishlist || [];

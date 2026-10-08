@@ -2,11 +2,13 @@ import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { C } from "@/lib/theme";
 
-const SafeScreen = ({ children }: { children: React.ReactNode }) => (
-  <SafeAreaView style={{ flex: 1, backgroundColor: "#0F172A" }} edges={["top","left","right"]}>
-    <StatusBar style="light" />
-    <View style={{ flex: 1, backgroundColor: "#0F172A" }}>{children}</View>
+// `headerColor` paints the status-bar strip to match a screen's header
+const SafeScreen = ({ children, headerColor = C.bg }: { children: React.ReactNode; headerColor?: string }) => (
+  <SafeAreaView style={{ flex: 1, backgroundColor: headerColor }} edges={["top","left","right"]}>
+    <StatusBar style="dark" />
+    <View style={{ flex: 1, backgroundColor: C.bg }}>{children}</View>
   </SafeAreaView>
 );
 

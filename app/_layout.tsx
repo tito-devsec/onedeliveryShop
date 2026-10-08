@@ -39,7 +39,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NotificationSetup />
-          <StatusBar style="light" />
+          <StatusBar style="dark" />
           <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />

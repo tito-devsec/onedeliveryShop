@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://api.onedelivery.co.tz/api";
 
@@ -43,6 +44,7 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   signIn:  (email: string, password: string) => Promise<void>;
   signUp:  (name: string, email: string, password: string, phone?: string) => Promise<void>;
+  signInWithGoogle: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
   getToken: () => Promise<string | null>;
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     accessToken: null,
   });
   const refreshTimerRef = useRef<any>(null);
+  const queryClient = useQueryClient();
 
   // ── Boot: restore session ───────────────────────────────────────────────────
   useEffect(() => {
@@ -156,6 +159,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     scheduleRefresh();
   }, []);
 
+  // Google sign-in and sign-up: the backend verifies the Google ID token and
+  // creates the account on first use
+  const signInWithGoogle = useCallback(async (idToken: string) => {
+    const { data } = await axios.post(`${API_URL}/auth/google`, { idToken }, { timeout: 15000 });
+    await saveSession(data.accessToken, data.refreshToken, data.user);
+    setState({ user: data.user, isLoaded: true, isSignedIn: true, accessToken: data.accessToken });
+    scheduleRefresh();
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       const refresh = await SecureStore.getItemAsync(KEYS.REFRESH);
@@ -168,9 +180,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       await clearSession();
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      queryClient.clear(); // drop the previous account's cart, orders, etc.
       setState({ user: null, isLoaded: true, isSignedIn: false, accessToken: null });
     }
-  }, []);
+  }, [queryClient]);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -190,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, refreshUser, getToken }}>
+    <AuthContext.Provider value={{ ...state, signIn, signUp, signInWithGoogle, signOut, refreshUser, getToken }}>
       {children}
     </AuthContext.Provider>
   );

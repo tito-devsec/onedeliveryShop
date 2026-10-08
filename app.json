@@ -4,15 +4,15 @@
     "slug": "onedelivery",
     "version": "2.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/onedelivery-logo.png",
+    "icon": "./assets/images/app-icon.png",
     "scheme": "onedelivery",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
-      "image": "./assets/images/onedelivery-logo-tight.png",
+      "image": "./assets/images/onedelivery-logo-wide.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0F172A"
+      "backgroundColor": "#FFFFFF"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -37,7 +37,7 @@
       "package": "com.onedelivery.shop",
       "versionCode": 3,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/onedelivery-logo.png",
+        "foregroundImage": "./assets/images/adaptive-icon-foreground.png",
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
@@ -64,6 +64,7 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      "@react-native-google-signin/google-signin",
       [
         "expo-image-picker",
         {
@@ -82,19 +83,22 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#F97316",
+          "color": "#EC7C2C",
           "androidMode": "default",
           "androidCollapsedTitle": "OneDelivery",
-          "sounds": []
+          "sounds": [
+            "./assets/sounds/onedelivery_notification.wav"
+          ],
+          "defaultChannel": "onedelivery_alerts"
         }
       ],
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/onedelivery-logo-tight.png",
-          "imageWidth": 300,
+          "image": "./assets/images/onedelivery-logo-wide.png",
+          "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#0F172A"
+          "backgroundColor": "#FFFFFF"
         }
       ]
     ],

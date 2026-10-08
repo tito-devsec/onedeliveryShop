@@ -22,16 +22,16 @@ export const timeAgo = (dateStr: string) => {
 
 export const getStatusColor = (status: string) => {
   switch ((status || "").toLowerCase()) {
-    case "delivered":   return "#22C55E";
+    case "delivered":   return "#16A34A";
     case "shipped":
-    case "on_the_way":  return "#3B82F6";
+    case "on_the_way":  return "#2563EB";
     case "processing":
-    case "accepted":    return "#8B5CF6";
+    case "accepted":    return "#7C3AED";
     case "pending":
-    case "searching":   return "#F59E0B";
+    case "searching":   return "#E0950B";
     case "cancelled":
-    case "no_driver":   return "#EF4444";
-    default:            return "#94A3B8";
+    case "no_driver":   return "#DC2626";
+    default:            return "#6B7280";
   }
 };
 

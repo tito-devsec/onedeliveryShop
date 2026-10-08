@@ -1,19 +1,17 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert, StyleSheet, Dimensions, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import AuthField from "@/components/AuthField";
+import GoogleButton from "@/components/GoogleButton";
+import { cancelSignIn, finishSignIn } from "@/lib/authGate";
+import { C } from "@/lib/theme";
 
 const { width } = Dimensions.get("window");
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good Morning!";
-  if (h < 17) return "Good Afternoon!";
-  return "Good Evening!";
-}
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -27,64 +25,47 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signIn(email.trim(), password);
-      router.replace("/(tabs)");
+      finishSignIn();
     } catch (err: any) {
-      const msg = err?.response?.data?.error || err.message || "Login failed. Please try again.";
-      Alert.alert("Sign in failed", msg);
+      Alert.alert("Sign in failed", err?.response?.data?.error || err.message || "Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.card }}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 28, paddingTop: 36, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
-        <View style={{ alignItems: "center", marginBottom: 28 }}>
-          <Image source={require("../../assets/images/onedelivery-logo.png")} style={{ width: width * 0.45, height: 60 }} resizeMode="contain" />
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <TouchableOpacity onPress={cancelSignIn} hitSlop={10} style={{ alignSelf: "flex-start", marginTop: 8, padding: 4 }}>
+          <Ionicons name="close" size={26} color={C.text} />
+        </TouchableOpacity>
+        <View style={{ alignItems: "center", marginTop: 4, marginBottom: 28 }}>
+          <Image source={require("../../assets/images/onedelivery-logo-wide.png")} style={{ width: width * 0.56, height: (width * 0.56) / 1.844 }} contentFit="contain" />
         </View>
-        <Text style={styles.title}>{getGreeting()}</Text>
-        <Text style={styles.subtitle}>Welcome back to OneDelivery</Text>
+        <Text style={{ fontSize: 26, fontWeight: "800", color: C.text }}>Welcome back</Text>
+        <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 6, marginBottom: 24, lineHeight: 20 }}>
+          Sign in to order, track your deliveries and chat with support.
+        </Text>
 
-        <View style={styles.inputWrapper}>
-          <Text style={styles.floatLabel}>Email</Text>
-          <View style={styles.inputRow}>
-            <TextInput value={email} onChangeText={setEmail} placeholder="Enter your email" placeholderTextColor="#C4C4C4" keyboardType="email-address" autoCapitalize="none" style={styles.textInput} />
-            <Ionicons name="mail-outline" size={20} color="#C4C4C4" />
-          </View>
-        </View>
+        <AuthField icon="mail-outline" value={email} onChangeText={setEmail} placeholder="Email address" keyboardType="email-address" autoComplete="email" />
+        <AuthField icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder="Password"
+          secure={!showPw} onToggleSecure={() => setShowPw((s) => !s)} autoComplete="password" />
 
-        <View style={styles.inputWrapper}>
-          <Text style={styles.floatLabel}>Password</Text>
-          <View style={styles.inputRow}>
-            <TextInput value={password} onChangeText={setPassword} placeholder="Enter your password" placeholderTextColor="#C4C4C4" secureTextEntry={!showPw} style={styles.textInput} />
-            <TouchableOpacity onPress={() => setShowPw(!showPw)}>
-              <Ionicons name={showPw ? "eye-off-outline" : "eye-outline"} size={20} color="#C4C4C4" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <TouchableOpacity onPress={handleLogin} disabled={loading} style={styles.orangeBtn} activeOpacity={0.85}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.orangeBtnText}>Login</Text>}
+        <TouchableOpacity onPress={handleLogin} disabled={loading} activeOpacity={0.85}
+          style={{ backgroundColor: C.navy, borderRadius: 14, paddingVertical: 16, alignItems: "center", marginTop: 8 }}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Sign in</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.replace("/(auth)/register")} style={{ marginTop: 16 }}>
-          <Text style={{ color: "#6B7280", fontSize: 14 }}>
-            Don't have an account? <Text style={{ color: "#F97316", fontWeight: "700" }}>Register</Text>
-          </Text>
-        </TouchableOpacity>
+        <GoogleButton />
+
+        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 26 }}>
+          <Text style={{ color: C.textSecondary, fontSize: 14 }}>New to OneDelivery? </Text>
+          <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
+            <Text style={{ color: C.navy, fontWeight: "700", fontSize: 14 }}>Create account</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: "800", color: "#111827", marginBottom: 4 },
-  subtitle: { fontSize: 14, color: "#6B7280", marginBottom: 28 },
-  inputWrapper: { marginBottom: 16 },
-  floatLabel: { fontSize: 12, fontWeight: "600", marginBottom: 4, color: "#9CA3AF" },
-  inputRow: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, borderColor: "#E5E7EB", backgroundColor: "#FFFFFF" },
-  textInput: { flex: 1, fontSize: 15, color: "#111827", paddingVertical: 14 },
-  orangeBtn: { backgroundColor: "#F97316", borderRadius: 14, paddingVertical: 17, alignItems: "center", shadowColor: "#F97316", shadowOpacity: 0.25, shadowRadius: 8, elevation: 4, marginTop: 8 },
-  orangeBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
-});

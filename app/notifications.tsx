@@ -8,18 +8,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { timeAgo } from "@/lib/utils";
 
 const TYPE_ICONS: Record<string, { icon: any; color: string }> = {
-  order_confirmed:   { icon: "checkmark-circle-outline", color: "#22C55E" },
-  order_pending:     { icon: "time-outline",             color: "#F59E0B" },
-  payment_failed:    { icon: "close-circle-outline",     color: "#EF4444" },
-  ride_accepted:     { icon: "car-outline",              color: "#3B82F6" },
-  ride_picked_up:    { icon: "cube-outline",             color: "#8B5CF6" },
-  ride_on_the_way:   { icon: "navigate-outline",         color: "#F97316" },
-  ride_delivered:    { icon: "gift-outline",             color: "#22C55E" },
-  seller_approved:   { icon: "storefront-outline",       color: "#F97316" },
-  driver_approved:   { icon: "bicycle-outline",          color: "#3B82F6" },
-  package_activated: { icon: "award-outline",            color: "#F59E0B" },
-  new_message:       { icon: "chatbubble-outline",       color: "#3B82F6" },
-  general:           { icon: "notifications-outline",    color: "#94A3B8" },
+  order_confirmed:   { icon: "checkmark-circle-outline", color: "#16A34A" },
+  order_pending:     { icon: "time-outline",             color: "#E0950B" },
+  payment_failed:    { icon: "close-circle-outline",     color: "#DC2626" },
+  ride_accepted:     { icon: "car-outline",              color: "#2563EB" },
+  ride_picked_up:    { icon: "cube-outline",             color: "#7C3AED" },
+  ride_on_the_way:   { icon: "navigate-outline",         color: "#EC7C2C" },
+  ride_delivered:    { icon: "gift-outline",             color: "#16A34A" },
+  seller_approved:   { icon: "storefront-outline",       color: "#EC7C2C" },
+  driver_approved:   { icon: "bicycle-outline",          color: "#2563EB" },
+  package_activated: { icon: "award-outline",            color: "#E0950B" },
+  new_message:       { icon: "chatbubble-outline",       color: "#2563EB" },
+  general:           { icon: "notifications-outline",    color: "#6B7280" },
 };
 
 export default function NotificationsScreen() {
@@ -47,24 +47,24 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0F172A" }}>
-      <StatusBar style="light" />
-      <View style={{ paddingTop: insets.top + 8, paddingBottom: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "#1E293B", flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <View style={{ flex: 1, backgroundColor: "#F4F5F8" }}>
+      <StatusBar style="dark" />
+      <View style={{ paddingTop: insets.top + 8, paddingBottom: 14, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "#FFFFFF", flexDirection: "row", alignItems: "center", gap: 12 }}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={26} color="#F97316" />
+          <Ionicons name="arrow-back" size={26} color="#1B2036" />
         </TouchableOpacity>
-        <Text style={{ color: "#F8FAFC", fontSize: 20, fontWeight: "800" }}>Notifications</Text>
+        <Text style={{ color: "#1B2036", fontSize: 20, fontWeight: "800" }}>Notifications</Text>
       </View>
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator color="#F97316" size="large" />
+          <ActivityIndicator color="#EC7C2C" size="large" />
         </View>
       ) : notifications.length === 0 ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-          <Ionicons name="notifications-off-outline" size={60} color="#334155" />
-          <Text style={{ color: "#F8FAFC", fontSize: 18, fontWeight: "700", marginTop: 16 }}>No notifications yet</Text>
-          <Text style={{ color: "#64748B", textAlign: "center", marginTop: 8 }}>You'll see order updates, delivery status, and messages here.</Text>
+          <Ionicons name="notifications-off-outline" size={60} color="#E6E8EE" />
+          <Text style={{ color: "#1B2036", fontSize: 18, fontWeight: "700", marginTop: 16 }}>No notifications yet</Text>
+          <Text style={{ color: "#8A90A0", textAlign: "center", marginTop: 8 }}>You'll see order updates, delivery status, and messages here.</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
@@ -72,16 +72,16 @@ export default function NotificationsScreen() {
             const style = TYPE_ICONS[n.type] || TYPE_ICONS.general;
             return (
               <TouchableOpacity key={n.id} onPress={() => handleTap(n)} activeOpacity={0.75}
-                style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#1E293B", flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: n.is_read ? "transparent" : "#1E293B40" }}>
+                style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#FFFFFF", flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: n.is_read ? "transparent" : "#FFF4EC" }}>
                 <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: style.color + "20", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Ionicons name={style.icon} size={22} color={style.color} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: "#F8FAFC", fontWeight: "700", fontSize: 14, marginBottom: 2 }}>{n.title}</Text>
-                  <Text style={{ color: "#94A3B8", fontSize: 13, lineHeight: 18 }}>{n.body}</Text>
-                  <Text style={{ color: "#475569", fontSize: 11, marginTop: 4 }}>{timeAgo(n.created_at)}</Text>
+                  <Text style={{ color: "#1B2036", fontWeight: "700", fontSize: 14, marginBottom: 2 }}>{n.title}</Text>
+                  <Text style={{ color: "#6B7280", fontSize: 13, lineHeight: 18 }}>{n.body}</Text>
+                  <Text style={{ color: "#A0A6B4", fontSize: 11, marginTop: 4 }}>{timeAgo(n.created_at)}</Text>
                 </View>
-                {!n.is_read && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#F97316", marginTop: 6 }} />}
+                {!n.is_read && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#EC7C2C", marginTop: 6 }} />}
               </TouchableOpacity>
             );
           })}

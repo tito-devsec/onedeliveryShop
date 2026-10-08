@@ -1,22 +1,27 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert, StyleSheet, Dimensions, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import AuthField from "@/components/AuthField";
+import GoogleButton from "@/components/GoogleButton";
+import { cancelSignIn, finishSignIn } from "@/lib/authGate";
+import { C } from "@/lib/theme";
 
 const { width } = Dimensions.get("window");
 
 export default function RegisterScreen() {
   const { signUp } = useAuth();
-  const [name, setName]         = useState("");
-  const [email, setEmail]       = useState("");
-  const [phone, setPhone]       = useState("");
-  const [password, setPassword] = useState("");
+  const [name, setName]           = useState("");
+  const [email, setEmail]         = useState("");
+  const [phone, setPhone]         = useState("");
+  const [password, setPassword]   = useState("");
   const [confirmPw, setConfirmPw] = useState("");
-  const [showPw, setShowPw]     = useState(false);
-  const [loading, setLoading]   = useState(false);
+  const [showPw, setShowPw]       = useState(false);
+  const [loading, setLoading]     = useState(false);
 
   const handleRegister = async () => {
     if (!name.trim()) { Alert.alert("Missing field", "Please enter your full name."); return; }
@@ -26,7 +31,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await signUp(name.trim(), email.trim(), password, phone.trim());
-      router.replace("/(tabs)");
+      finishSignIn();
     } catch (err: any) {
       Alert.alert("Registration failed", err?.response?.data?.error || err.message || "Please try again.");
     } finally {
@@ -35,62 +40,42 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.card }}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 20, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
-        <View style={{ alignItems: "center", marginBottom: 28 }}>
-          <Image source={require("../../assets/images/onedelivery-logo.png")} style={{ width: width * 0.45, height: 60 }} resizeMode="contain" />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <TouchableOpacity onPress={cancelSignIn} hitSlop={10} style={{ alignSelf: "flex-start", marginTop: 8, padding: 4 }}>
+          <Ionicons name="close" size={26} color={C.text} />
+        </TouchableOpacity>
+        <View style={{ alignItems: "center", marginTop: 4, marginBottom: 22 }}>
+          <Image source={require("../../assets/images/onedelivery-logo-wide.png")} style={{ width: width * 0.46, height: (width * 0.46) / 1.844 }} contentFit="contain" />
         </View>
-        <Text style={styles.title}>Sign Up</Text>
-        <Text style={styles.subtitle}>Create your OneDelivery account</Text>
+        <Text style={{ fontSize: 26, fontWeight: "800", color: C.text }}>Create account</Text>
+        <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 6, marginBottom: 22, lineHeight: 20 }}>
+          Shop, send packages and track every delivery in one app.
+        </Text>
 
-        {[
-          { label: "Full Name", value: name, onChange: setName, placeholder: "Enter your full name", keyboardType: "default" as const, secure: false },
-          { label: "Email", value: email, onChange: setEmail, placeholder: "Enter your email", keyboardType: "email-address" as const, secure: false },
-          { label: "Phone (optional)", value: phone, onChange: setPhone, placeholder: "e.g. 0712345678", keyboardType: "phone-pad" as const, secure: false },
-        ].map((f) => (
-          <View key={f.label} style={styles.inputWrapper}>
-            <Text style={styles.floatLabel}>{f.label}</Text>
-            <View style={styles.inputRow}>
-              <TextInput value={f.value} onChangeText={f.onChange} placeholder={f.placeholder} placeholderTextColor="#C4C4C4" keyboardType={f.keyboardType} autoCapitalize="none" style={styles.textInput} />
-            </View>
-          </View>
-        ))}
+        <AuthField icon="person-outline" value={name} onChangeText={setName} placeholder="Full name" autoCapitalize="words" autoComplete="name" />
+        <AuthField icon="mail-outline" value={email} onChangeText={setEmail} placeholder="Email address" keyboardType="email-address" autoComplete="email" />
+        <AuthField icon="call-outline" value={phone} onChangeText={setPhone} placeholder="Phone (optional), e.g. 0712345678" keyboardType="phone-pad" autoComplete="tel" />
+        <AuthField icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder="Password (8+ characters)"
+          secure={!showPw} onToggleSecure={() => setShowPw((s) => !s)} autoComplete="new-password" />
+        <AuthField icon="lock-closed-outline" value={confirmPw} onChangeText={setConfirmPw} placeholder="Confirm password"
+          secure={!showPw} autoComplete="new-password" />
 
-        {[
-          { label: "Password", value: password, onChange: setPassword, show: showPw, toggle: () => setShowPw((s) => !s) },
-          { label: "Confirm Password", value: confirmPw, onChange: setConfirmPw, show: showPw, toggle: () => setShowPw((s) => !s) },
-        ].map((f) => (
-          <View key={f.label} style={styles.inputWrapper}>
-            <Text style={styles.floatLabel}>{f.label}</Text>
-            <View style={styles.inputRow}>
-              <TextInput value={f.value} onChangeText={f.onChange} placeholder="••••••••" placeholderTextColor="#C4C4C4" secureTextEntry={!f.show} autoCapitalize="none" style={styles.textInput} />
-              <TouchableOpacity onPress={f.toggle}><Ionicons name={f.show ? "eye-off-outline" : "eye-outline"} size={20} color="#C4C4C4" /></TouchableOpacity>
-            </View>
-          </View>
-        ))}
-
-        <TouchableOpacity onPress={handleRegister} disabled={loading} style={[styles.orangeBtn, { marginTop: 8 }]} activeOpacity={0.85}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.orangeBtnText}>Create Account</Text>}
+        <TouchableOpacity onPress={handleRegister} disabled={loading} activeOpacity={0.85}
+          style={{ backgroundColor: C.navy, borderRadius: 14, paddingVertical: 16, alignItems: "center", marginTop: 8 }}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>Create account</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.replace("/(auth)/login")} style={{ alignItems: "center", marginTop: 16 }}>
-          <Text style={{ color: "#6B7280", fontSize: 14 }}>
-            Already have an account? <Text style={{ color: "#F97316", fontWeight: "700" }}>Login</Text>
-          </Text>
-        </TouchableOpacity>
+        <GoogleButton />
+
+        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 26 }}>
+          <Text style={{ color: C.textSecondary, fontSize: 14 }}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
+            <Text style={{ color: C.navy, fontWeight: "700", fontSize: 14 }}>Sign in</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: "800", color: "#111827", marginBottom: 4 },
-  subtitle: { fontSize: 14, color: "#6B7280", marginBottom: 24 },
-  inputWrapper: { marginBottom: 16 },
-  floatLabel: { fontSize: 12, fontWeight: "600", marginBottom: 4, color: "#9CA3AF" },
-  inputRow: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, borderColor: "#E5E7EB" },
-  textInput: { flex: 1, fontSize: 15, color: "#111827", paddingVertical: 14 },
-  orangeBtn: { backgroundColor: "#F97316", borderRadius: 14, paddingVertical: 17, alignItems: "center", shadowColor: "#F97316", shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 },
-  orangeBtnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
-});

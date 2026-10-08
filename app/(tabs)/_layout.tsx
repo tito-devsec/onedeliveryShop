@@ -1,30 +1,32 @@
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator } from "react-native";
+import { C } from "@/lib/theme";
 
+// Open to guests: browsing needs no account; account-only tabs show a sign-in prompt
 const TabsLayout = () => {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isLoaded } = useAuth();
   const insets = useSafeAreaInsets();
 
   if (!isLoaded) return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}>
-      <ActivityIndicator size="large" color="#F97316" />
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: C.bg }}>
+      <ActivityIndicator size="large" color={C.navy} />
     </View>
   );
-  if (!isSignedIn) return <Redirect href="/(auth)" />;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#F97316",
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: C.navy,
+        tabBarInactiveTintColor: "#A0A6B4",
         tabBarStyle: {
-          backgroundColor: "#0F172A",
+          backgroundColor: C.card,
           borderTopWidth: 1,
-          borderTopColor: "#1E293B",
-          height: 56 + insets.bottom,
+          borderTopColor: C.border,
+          elevation: 0,
+          height: 58 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 6,
         },
@@ -32,10 +34,10 @@ const TabsLayout = () => {
         headerShown: false,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Shop", tabBarIcon: ({ color, size }) => <Ionicons name="storefront-outline" size={size} color={color} /> }} />
-      <Tabs.Screen name="cart" options={{ title: "Cart", tabBarIcon: ({ color, size }) => <Ionicons name="cart-outline" size={size} color={color} /> }} />
-      <Tabs.Screen name="chat" options={{ title: "Chat", tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" size={size} color={color} /> }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} /> }} />
+      <Tabs.Screen name="index" options={{ title: "Shop", tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "storefront" : "storefront-outline"} size={size} color={color} /> }} />
+      <Tabs.Screen name="cart" options={{ title: "Cart", tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "cart" : "cart-outline"} size={size} color={color} /> }} />
+      <Tabs.Screen name="chat" options={{ title: "Chat", tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={size} color={color} /> }} />
+      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: ({ color, size, focused }) => <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} /> }} />
     </Tabs>
   );
 };
