@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import AuthField from "@/components/AuthField";
 import GoogleButton from "@/components/GoogleButton";
+import LegalNote from "@/components/LegalNote";
 import { cancelSignIn, finishSignIn } from "@/lib/authGate";
 import { C } from "@/lib/theme";
 
@@ -68,8 +69,9 @@ export default function RegisterScreen() {
         </TouchableOpacity>
 
         <GoogleButton />
+        <LegalNote />
 
-        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 26 }}>
+        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 22 }}>
           <Text style={{ color: C.textSecondary, fontSize: 14 }}>Already have an account? </Text>
           <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
             <Text style={{ color: C.navy, fontWeight: "700", fontSize: 14 }}>Sign in</Text>

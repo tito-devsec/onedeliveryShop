@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import AuthField from "@/components/AuthField";
 import GoogleButton from "@/components/GoogleButton";
+import LegalNote from "@/components/LegalNote";
 import { cancelSignIn, finishSignIn } from "@/lib/authGate";
 import { C } from "@/lib/theme";
 
@@ -58,8 +59,9 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <GoogleButton />
+        <LegalNote />
 
-        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 26 }}>
+        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 22 }}>
           <Text style={{ color: C.textSecondary, fontSize: 14 }}>New to OneDelivery? </Text>
           <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
             <Text style={{ color: C.navy, fontWeight: "700", fontSize: 14 }}>Create account</Text>
