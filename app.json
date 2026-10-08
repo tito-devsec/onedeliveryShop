@@ -1,0 +1,118 @@
+{
+  "expo": {
+    "name": "OneDelivery",
+    "slug": "onedelivery",
+    "version": "2.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/images/onedelivery-logo.png",
+    "scheme": "onedelivery",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "jsEngine": "hermes",
+    "splash": {
+      "image": "./assets/images/onedelivery-logo-tight.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.onedelivery.app",
+      "buildNumber": "2",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "OneDelivery needs your location to auto-fill your delivery address and track your rider.",
+        "NSLocationAlwaysUsageDescription": "OneDelivery uses your location for delivery tracking.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "OneDelivery uses your location for delivery tracking.",
+        "NSCameraUsageDescription": "Used to take product and shop photos.",
+        "NSPhotoLibraryUsageDescription": "Used to upload product and shop images.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "$EXPO_PUBLIC_GOOGLE_MAPS_IOS_KEY"
+      }
+    },
+    "android": {
+      "package": "com.onedelivery.shop",
+      "versionCode": 3,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/onedelivery-logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "INTERNET",
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "$EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY"
+        }
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/onedelivery-logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "OneDelivery needs access to your photos to upload product and shop images.",
+          "cameraPermission": "OneDelivery needs access to your camera."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "OneDelivery needs your location to fill your delivery address and track your rider.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/onedelivery-logo.png",
+          "color": "#F97316",
+          "androidMode": "default",
+          "androidCollapsedTitle": "OneDelivery",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/onedelivery-logo-tight.png",
+          "imageWidth": 300,
+          "resizeMode": "contain",
+          "backgroundColor": "#0F172A"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "61051938-98d3-43e4-b2df-59212eb1be69"
+      }
+    },
+    "owner": "titocode",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/61051938-98d3-43e4-b2df-59212eb1be69"
+    }
+  }
+}
