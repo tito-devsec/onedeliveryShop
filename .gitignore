@@ -50,3 +50,7 @@ app-example
 *.aab
 *.apk
 google-play-service-account.json
+
+# Firebase service-account keys (server/EAS secrets — never commit)
+*firebase-adminsdk*.json
+firebase-service-account.json
