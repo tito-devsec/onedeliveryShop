@@ -7,6 +7,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { getRegisteredPushToken, setRegisteredPushToken } from "@/lib/pushToken";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://api.onedelivery.co.tz/api";
 
@@ -173,6 +174,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refresh = await SecureStore.getItemAsync(KEYS.REFRESH);
       const token   = await SecureStore.getItemAsync(KEYS.ACCESS);
       if (token) {
+        // Stop this phone getting the account's notifications
+        const pushToken = getRegisteredPushToken();
+        if (pushToken) {
+          await axios.delete(`${API_URL}/notifications/token`, {
+            data: { token: pushToken }, headers: { Authorization: `Bearer ${token}` }, timeout: 5000,
+          }).catch(() => {});
+        }
         await axios.post(`${API_URL}/auth/logout`, { refreshToken: refresh }, {
           headers: { Authorization: `Bearer ${token}` }, timeout: 5000,
         }).catch(() => {});
@@ -181,6 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await clearSession();
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
       queryClient.clear(); // drop the previous account's cart, orders, etc.
+      setRegisteredPushToken(null);
       setState({ user: null, isLoaded: true, isSignedIn: false, accessToken: null });
     }
   }, [queryClient]);

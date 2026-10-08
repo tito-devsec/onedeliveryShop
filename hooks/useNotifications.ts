@@ -6,6 +6,7 @@ import axios from "axios";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { setRegisteredPushToken } from "@/lib/pushToken";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://api.onedelivery.co.tz/api";
 
@@ -73,10 +74,12 @@ export function useNotifications() {
         const token = await getExpoPushToken();
         const accessToken = await getToken();
         if (!token || !accessToken) return;
-        await axios.post(`${API_URL}/notifications/token`, { token, type: "expo" }, {
+        // `app` lets the backend send customer updates here and driver updates to the driver app
+        await axios.post(`${API_URL}/notifications/token`, { token, type: "expo", app: "shop", platform: Platform.OS }, {
           headers: { Authorization: `Bearer ${accessToken}` },
           timeout: 10000,
         });
+        setRegisteredPushToken(token);
       } catch (e: any) {
         console.warn("[Push] registration failed:", e?.message ?? e);
       }
