@@ -81,7 +81,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/onedelivery-logo.png",
+          "icon": "./assets/images/notification-icon.png",
           "color": "#F97316",
           "androidMode": "default",
           "androidCollapsedTitle": "OneDelivery",
