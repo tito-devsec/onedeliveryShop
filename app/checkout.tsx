@@ -12,10 +12,10 @@ import { StatusBar } from "expo-status-bar";
 import useCart from "@/hooks/useCart";
 
 const MOBILE_PROVIDERS = [
-  { label: "M-Pesa",       prefix: "07", color: "#00A859", prefixes: ["076","077"] },
-  { label: "Airtel Money", prefix: "07", color: "#FF0000", prefixes: ["078","079"] },
-  { label: "Mixx",         prefix: "07", color: "#0099CC", prefixes: ["071","072","073"] },
-  { label: "HaloPesa",     prefix: "06", color: "#F7941D", prefixes: ["062","061"] },
+  { label: "M-Pesa",       prefix: "07", color: "#00A859", prefixes: ["074","075","076"] },
+  { label: "Airtel Money", prefix: "07", color: "#FF0000", prefixes: ["068","069","078"] },
+  { label: "Mixx",         prefix: "07", color: "#0099CC", prefixes: ["065","067","071","077"] },
+  { label: "HaloPesa",     prefix: "06", color: "#F7941D", prefixes: ["061","062"] },
 ];
 
 export default function CheckoutScreen() {

@@ -2,7 +2,7 @@
   "expo": {
     "name": "OneDelivery",
     "slug": "onedelivery",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon.png",
     "scheme": "onedelivery",
@@ -35,7 +35,7 @@
     },
     "android": {
       "package": "com.onedelivery.shop",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon-foreground.png",
         "backgroundColor": "#FFFFFF"

@@ -35,16 +35,13 @@ export const getStatusColor = (status: string) => {
   }
 };
 
-export const vehicleEmoji = (type: string) =>
-  ({ bodaboda: "🏍️", bajaj: "🛺", pickup: "🚛", toyo: "🚙" }[type] || "🚗");
-
 export const detectProvider = (phone: string) => {
   const p = phone.replace(/[\s\-+]/g, "");
   const local = p.startsWith("255") ? "0" + p.slice(3) : p;
   const prefix = local.slice(0, 3);
-  if (["076","077"].includes(prefix)) return "M-Pesa";
-  if (["078","079"].includes(prefix)) return "Airtel Money";
-  if (["071","072","073"].includes(prefix)) return "Mixx by Yas";
-  if (["062","061"].includes(prefix)) return "HaloPesa";
+  if (["074","075","076"].includes(prefix)) return "M-Pesa";
+  if (["068","069","078"].includes(prefix)) return "Airtel Money";
+  if (["065","067","071","077"].includes(prefix)) return "Mixx by Yas";
+  if (["061","062"].includes(prefix)) return "HaloPesa";
   return null;
 };
