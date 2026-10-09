@@ -307,13 +307,13 @@ export default function RideRequestScreen() {
                     <Image source={vehicleSideImage(opt.id)} style={{ width: 84, height: 56 }} contentFit="contain" />
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 16 }}>{opt.name}</Text>
-                      <Text style={{ color: "#8A90A0", fontSize: 12, marginTop: 1 }} numberOfLines={1}>{opt.subtitle} · {opt.capacity}</Text>
+                      <Text style={{ color: "#8A90A0", fontSize: 12, marginTop: 1 }} numberOfLines={1}>{opt.subtitle}</Text>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
                         <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: opt.available > 0 ? "#16A34A" : "#DC2626" }} />
                         <Text style={{ color: opt.available > 0 ? "#16A34A" : "#DC2626", fontSize: 12, fontWeight: "600", flex: 1 }} numberOfLines={1}>
                           {opt.available > 0
-                            ? `${opt.available} near the shop${opt.pickupEtaMin ? ` · ~${opt.pickupEtaMin} min away` : ""}`
-                            : "None near the shop right now"}
+                            ? `${opt.available} nearby${opt.pickupEtaMin ? ` · ~${opt.pickupEtaMin} min away` : ""}`
+                            : "None nearby right now"}
                         </Text>
                       </View>
                     </View>
@@ -394,7 +394,7 @@ export default function RideRequestScreen() {
               </TouchableOpacity>
             </View>
             <Text style={{ color: "#8A90A0", fontSize: 12, textAlign: "center", marginTop: 6 }}>
-              Suggested {formatMoney(selected.fare)} · you can offer {formatMoney(selected.offerMin)} – {formatMoney(selected.offerMax)}
+              Suggested {formatMoney(selected.fare)} · offer {grouped(selected.offerMin)}–{grouped(selected.offerMax)}
             </Text>
             {offer !== selected.fare && (
               <TouchableOpacity onPress={() => setOfferValue(selected.fare)} style={{ alignSelf: "center", marginTop: 10, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#2E3A740F" }}>

@@ -410,11 +410,10 @@ export default function TrackingScreen() {
                       <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 15 }} numberOfLines={1}>{c.name}</Text>
                       <Text style={{ color: "#6B7280", fontSize: 12 }} numberOfLines={1}>
                         {c.rating > 0 ? `★ ${c.rating.toFixed(1)} · ` : ""}{c.trips} trip{c.trips === 1 ? "" : "s"}
-                        {c.vehicle.model ? ` · ${c.vehicle.model}` : ""}{c.vehicle.color ? ` · ${c.vehicle.color}` : ""}
                       </Text>
                       {(c.pickupKm != null || c.pickupEtaMin != null) && (
                         <Text style={{ color: "#16A34A", fontSize: 12, fontWeight: "600" }} numberOfLines={1}>
-                          {c.pickupKm != null ? `${c.pickupKm} km` : ""}{c.pickupEtaMin ? ` · ~${c.pickupEtaMin} min` : ""} from the shop
+                          {[c.pickupEtaMin ? `~${c.pickupEtaMin} min away` : null, c.pickupKm != null ? `${c.pickupKm} km` : null].filter(Boolean).join(" · ")}
                         </Text>
                       )}
                     </View>
@@ -468,6 +467,39 @@ export default function TrackingScreen() {
                 </Text>
               </TouchableOpacity>
             )}
+          </View>
+        )}
+
+        {/* Driver card */}
+        {ride?.driver_name && isLive && (
+          <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ width: 64, height: 52, borderRadius: 14, backgroundColor: "#F4F5F8", alignItems: "center", justifyContent: "center" }}>
+              <Image source={vehicleSideImage(ride.vehicle_type)} style={{ width: 58, height: 39 }} contentFit="contain" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 16 }}>{ride.driver_name}</Text>
+              {!!ride.plate_number && (
+                <Text style={{ color: "#6B7280", fontSize: 13 }}>
+                  {ride.plate_number}{ride.vehicle_model ? ` · ${ride.vehicle_model}` : ""}{ride.vehicle_color ? ` · ${ride.vehicle_color}` : ""}
+                </Text>
+              )}
+              {Number(ride.driver_rating_avg) > 0 && (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                  <Ionicons name="star" size={12} color="#E0950B" />
+                  <Text style={{ color: "#6B7280", fontSize: 12 }}>{Number(ride.driver_rating_avg).toFixed(1)}</Text>
+                </View>
+              )}
+            </View>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              {!!ride.driver_phone && (
+                <TouchableOpacity onPress={callDriver} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#16A34A20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#16A34A40" }}>
+                  <Ionicons name="call" size={18} color="#16A34A" />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity onPress={openChat} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#2563EB20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#2563EB40" }}>
+                <Ionicons name="chatbubble" size={18} color="#2563EB" />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -546,39 +578,6 @@ export default function TrackingScreen() {
             );
           })}
         </View>
-
-        {/* Driver card */}
-        {ride?.driver_name && isLive && (
-          <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <View style={{ width: 64, height: 52, borderRadius: 14, backgroundColor: "#F4F5F8", alignItems: "center", justifyContent: "center" }}>
-              <Image source={vehicleSideImage(ride.vehicle_type)} style={{ width: 58, height: 39 }} contentFit="contain" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 16 }}>{ride.driver_name}</Text>
-              {!!ride.plate_number && (
-                <Text style={{ color: "#6B7280", fontSize: 13 }}>
-                  {ride.plate_number}{ride.vehicle_model ? ` · ${ride.vehicle_model}` : ""}{ride.vehicle_color ? ` · ${ride.vehicle_color}` : ""}
-                </Text>
-              )}
-              {Number(ride.driver_rating_avg) > 0 && (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                  <Ionicons name="star" size={12} color="#E0950B" />
-                  <Text style={{ color: "#6B7280", fontSize: 12 }}>{Number(ride.driver_rating_avg).toFixed(1)}</Text>
-                </View>
-              )}
-            </View>
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              {!!ride.driver_phone && (
-                <TouchableOpacity onPress={callDriver} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#16A34A20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#16A34A40" }}>
-                  <Ionicons name="call" size={18} color="#16A34A" />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity onPress={openChat} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#2563EB20", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#2563EB40" }}>
-                <Ionicons name="chatbubble" size={18} color="#2563EB" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
 
         {/* Rate the driver */}
         {status === "delivered" && (
