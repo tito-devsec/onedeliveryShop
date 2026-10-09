@@ -77,8 +77,7 @@ export default function BecomeSellerScreen() {
   });
 
   const pickDocument = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") { Alert.alert("Permission required", "Grant photo library access to upload your ID."); return; }
+    // The system photo picker needs no photo permission: the app only gets the picture chosen
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
     if (!result.canceled && result.assets[0]) setIdDocUri(result.assets[0].uri);
   };

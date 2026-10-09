@@ -387,8 +387,7 @@ function UploadTab({ api, cats, onDone }: any) {
   });
 
   const pickImages = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") { Alert.alert("Permission required", "Grant photo access to upload product images."); return; }
+    // The system photo picker needs no photo permission: the app only gets the pictures chosen
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.8, selectionLimit: 6 });
     if (!result.canceled) setImages((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, 6));
   };

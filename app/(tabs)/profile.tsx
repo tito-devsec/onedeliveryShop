@@ -49,8 +49,7 @@ function ProfileScreen() {
 
   const changeAvatar = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") { Alert.alert("Permission needed", "Allow photo access to set a profile picture."); return; }
+      // The system photo picker needs no photo permission: the app only gets the picture chosen
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
