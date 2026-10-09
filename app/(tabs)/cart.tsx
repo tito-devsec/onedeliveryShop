@@ -18,8 +18,8 @@ function CartScreen() {
     ]);
   };
 
-  const shippingCost = items.length > 0 ? 2000 : 0;
-  const grandTotal   = total + shippingCost;
+  // Same as the server: product prices already include VAT; delivery is paid separately later
+  const grandTotal = total;
 
   return (
     <SafeScreen>
@@ -97,20 +97,12 @@ function CartScreen() {
 
           {/* Summary + checkout */}
           <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#F4F5F8", padding: 20, paddingBottom: 34, borderTopWidth: 1, borderTopColor: "#FFFFFF", gap: 10 }}>
-            <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, gap: 8 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text style={{ color: "#6B7280", fontSize: 13 }}>Subtotal</Text>
-                <Text style={{ color: "#1B2036", fontSize: 13, fontWeight: "600" }}>{formatMoney(total)}</Text>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text style={{ color: "#6B7280", fontSize: 13 }}>Shipping</Text>
-                <Text style={{ color: "#1B2036", fontSize: 13, fontWeight: "600" }}>{formatMoney(shippingCost)}</Text>
-              </View>
-              <View style={{ height: 1, backgroundColor: "#E6E8EE" }} />
+            <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, gap: 6 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <Text style={{ color: "#1B2036", fontSize: 16, fontWeight: "800" }}>Total</Text>
                 <Text style={{ color: "#EC7C2C", fontSize: 16, fontWeight: "900" }}>{formatMoney(grandTotal)}</Text>
               </View>
+              <Text style={{ color: "#8A90A0", fontSize: 12 }}>Prices include VAT. Delivery is paid separately when you request it.</Text>
             </View>
             <TouchableOpacity onPress={() => router.push("/checkout")}
               style={{ backgroundColor: "#2E3A74", borderRadius: 16, paddingVertical: 17, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8 }}>

@@ -31,9 +31,8 @@ export default function CheckoutScreen() {
   const [notes, setNotes]         = useState("");
   const [detectedProvider, setDetectedProvider] = useState<string | null>(null);
 
-  const shippingCost = 2000;
-  const subtotal = total;
-  const grandTotal = subtotal + shippingCost;
+  // Same as the server: product prices already include VAT; delivery is paid separately later
+  const grandTotal = total;
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
@@ -99,18 +98,11 @@ export default function CheckoutScreen() {
               </View>
             ))}
             <View style={{ borderTopWidth: 1, borderTopColor: "#E6E8EE", marginTop: 12, paddingTop: 12 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-                <Text style={{ color: "#6B7280", fontSize: 13 }}>Subtotal</Text>
-                <Text style={{ color: "#1B2036", fontSize: 13 }}>{formatMoney(subtotal)}</Text>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={{ color: "#6B7280", fontSize: 13 }}>Shipping</Text>
-                <Text style={{ color: "#1B2036", fontSize: 13 }}>{formatMoney(shippingCost)}</Text>
-              </View>
               <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <Text style={{ color: "#1B2036", fontSize: 16, fontWeight: "800" }}>Total</Text>
                 <Text style={{ color: "#EC7C2C", fontSize: 16, fontWeight: "800" }}>{formatMoney(grandTotal)}</Text>
               </View>
+              <Text style={{ color: "#8A90A0", fontSize: 12, marginTop: 6 }}>Prices include VAT. Delivery is paid separately when you request it.</Text>
             </View>
           </View>
 
