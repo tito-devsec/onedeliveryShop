@@ -9,6 +9,7 @@ import {
   ActivityIndicator, Alert, StyleSheet,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatMoney, detectProvider } from "@/lib/utils";
@@ -300,7 +301,7 @@ export default function RideRequestScreen() {
       )}
 
       {step === "pay" && selected && (
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
+        <KeyboardAwareScrollView bottomOffset={130} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
           {/* Summary card */}
           <View style={{ backgroundColor: "#FFFFFF", borderRadius: 18, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: "#EC7C2C30" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}>
@@ -385,7 +386,7 @@ export default function RideRequestScreen() {
               </Text>
             </View>
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       )}
 
       <LocationPickerModal

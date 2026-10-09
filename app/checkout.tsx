@@ -5,7 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import useCart from "@/hooks/useCart";
@@ -85,8 +86,9 @@ export default function CheckoutScreen() {
         <Text style={{ color: "#1B2036", fontSize: 20, fontWeight: "800" }}>Checkout</Text>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+      <View style={{ flex: 1 }}>
+        {/* bottomOffset keeps the focused field clear of the Pay bar riding on the keyboard */}
+        <KeyboardAwareScrollView bottomOffset={110} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
 
           {/* Order summary */}
           <View style={s.card}>
@@ -152,20 +154,22 @@ export default function CheckoutScreen() {
               ))}
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
-        {/* CTA */}
-        <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: insets.bottom + 16, backgroundColor: "#F4F5F8", borderTopWidth: 1, borderTopColor: "#FFFFFF" }}>
-          <TouchableOpacity onPress={handleCheckout} disabled={checkoutMutation.isPending}
-            style={{ backgroundColor: "#2E3A74", borderRadius: 16, paddingVertical: 17, alignItems: "center", opacity: checkoutMutation.isPending ? 0.7 : 1, flexDirection: "row", justifyContent: "center", gap: 10 }}>
-            {checkoutMutation.isPending ? (
-              <><ActivityIndicator color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Processing…</Text></>
-            ) : (
-              <><Ionicons name="phone-portrait" size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Pay {formatMoney(grandTotal)}</Text></>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        {/* CTA — rides on top of the keyboard while typing */}
+        <KeyboardStickyView offset={{ opened: insets.bottom }} style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
+          <View style={{ padding: 20, paddingBottom: insets.bottom + 16, backgroundColor: "#F4F5F8", borderTopWidth: 1, borderTopColor: "#FFFFFF" }}>
+            <TouchableOpacity onPress={handleCheckout} disabled={checkoutMutation.isPending}
+              style={{ backgroundColor: "#2E3A74", borderRadius: 16, paddingVertical: 17, alignItems: "center", opacity: checkoutMutation.isPending ? 0.7 : 1, flexDirection: "row", justifyContent: "center", gap: 10 }}>
+              {checkoutMutation.isPending ? (
+                <><ActivityIndicator color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Processing…</Text></>
+              ) : (
+                <><Ionicons name="phone-portrait" size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Pay {formatMoney(grandTotal)}</Text></>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardStickyView>
+      </View>
     </View>
   );
 }

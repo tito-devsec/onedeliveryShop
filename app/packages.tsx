@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, StyleSheet } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatMoney } from "@/lib/utils";
@@ -131,7 +132,8 @@ export default function PackagesScreen() {
 
       {/* Purchase modal */}
       {selectedPkg && (
-        <View style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" }}>
+        // Lifts the sheet above the keyboard while the phone number is typed
+        <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={-insets.bottom} style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" }}>
           <View style={{ backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: insets.bottom + 24 }}>
             <Text style={{ color: "#1B2036", fontSize: 22, fontWeight: "900", marginBottom: 4 }}>{selectedPkg.name}</Text>
             <Text style={{ color: "#EC7C2C", fontSize: 28, fontWeight: "900", marginBottom: 20 }}>{formatMoney(selectedPkg.price)}</Text>
@@ -153,7 +155,7 @@ export default function PackagesScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );

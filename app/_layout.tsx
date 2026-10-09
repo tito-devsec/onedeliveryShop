@@ -5,6 +5,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AuthProvider } from "@/context/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -36,6 +37,9 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* Keeps focused text fields above the keyboard (Android draws edge-to-edge,
+          so the system no longer resizes the screen for the keyboard) */}
+      <KeyboardProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NotificationSetup />
@@ -61,6 +65,7 @@ export default function RootLayout() {
           </Stack>
         </AuthProvider>
       </QueryClientProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

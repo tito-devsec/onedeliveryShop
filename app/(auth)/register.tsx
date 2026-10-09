@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Dimensions } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
@@ -43,7 +44,7 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.card }}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView bottomOffset={32} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
         <TouchableOpacity onPress={cancelSignIn} hitSlop={10} style={{ alignSelf: "flex-start", marginTop: 8, padding: 4 }}>
           <Ionicons name="close" size={26} color={C.text} />
         </TouchableOpacity>
@@ -77,7 +78,7 @@ export default function RegisterScreen() {
             <Text style={{ color: C.navy, fontWeight: "700", fontSize: 14 }}>Sign in</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

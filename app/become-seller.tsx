@@ -4,7 +4,8 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator } from "react-native";
+import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -154,8 +155,9 @@ export default function BecomeSellerScreen() {
         </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+      <View style={{ flex: 1 }}>
+        {/* bottomOffset keeps the focused field clear of the Submit bar riding on the keyboard */}
+        <KeyboardAwareScrollView bottomOffset={110} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
 
           {/* Basic info */}
           <View style={s.card}>
@@ -254,17 +256,19 @@ export default function BecomeSellerScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
-        {/* Submit button */}
-        <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: insets.bottom + 16, backgroundColor: "#F4F5F8", borderTopWidth: 1, borderTopColor: "#FFFFFF" }}>
-          <TouchableOpacity onPress={handleApply} disabled={applyMutation.isPending}
-            style={{ backgroundColor: "#2E3A74", borderRadius: 16, paddingVertical: 17, alignItems: "center", opacity: applyMutation.isPending ? 0.7 : 1, flexDirection: "row", justifyContent: "center", gap: 10 }}>
-            {applyMutation.isPending ? <ActivityIndicator color="#fff" /> : <Ionicons name="storefront" size={20} color="#fff" />}
-            <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>{applyMutation.isPending ? "Submitting…" : "Submit Application"}</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        {/* Submit button — rides on top of the keyboard while typing */}
+        <KeyboardStickyView offset={{ opened: insets.bottom }} style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
+          <View style={{ padding: 20, paddingBottom: insets.bottom + 16, backgroundColor: "#F4F5F8", borderTopWidth: 1, borderTopColor: "#FFFFFF" }}>
+            <TouchableOpacity onPress={handleApply} disabled={applyMutation.isPending}
+              style={{ backgroundColor: "#2E3A74", borderRadius: 16, paddingVertical: 17, alignItems: "center", opacity: applyMutation.isPending ? 0.7 : 1, flexDirection: "row", justifyContent: "center", gap: 10 }}>
+              {applyMutation.isPending ? <ActivityIndicator color="#fff" /> : <Ionicons name="storefront" size={20} color="#fff" />}
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>{applyMutation.isPending ? "Submitting…" : "Submit Application"}</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardStickyView>
+      </View>
 
       {/* Business type picker modal */}
       {showTypePicker && (

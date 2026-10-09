@@ -1,3 +1,4 @@
+import AppVersion from "@/components/AppVersion";
 import GuestPrompt from "@/components/GuestPrompt";
 import SafeScreen from "@/components/SafeScreen";
 import { useAuth } from "@/context/AuthContext";
@@ -192,6 +193,9 @@ function ProfileScreen() {
           </View>
           <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 15 }}>Sign Out</Text>
         </TouchableOpacity>
+
+        {/* App version + over-the-air update */}
+        <AppVersion />
       </ScrollView>
     </SafeScreen>
   );
@@ -203,6 +207,9 @@ export default function ProfileTab() {
   if (!user) return (
     <SafeScreen>
       <GuestPrompt icon="person-outline" title="Your OneDelivery account" message="Sign in or create an account to manage orders, addresses and your wishlist." />
+      <View style={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+        <AppVersion />
+      </View>
     </SafeScreen>
   );
   return <ProfileScreen />;

@@ -6,8 +6,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput, Alert,
-  ActivityIndicator, KeyboardAvoidingView, Platform,
+  ActivityIndicator,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { StatusBar } from "expo-status-bar";
@@ -104,8 +105,8 @@ export default function SellerDashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <View style={{ flex: 1 }}>
+        <KeyboardAwareScrollView bottomOffset={32} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {tab === "home" && <ShopLocationCard api={api} />}
           {tab === "home" && (
             <HomeTab
@@ -125,8 +126,8 @@ export default function SellerDashboardScreen() {
             <WalletTab api={api} balance={balance} totalSales={parseFloat(dash.totalSales || 0)} withdrawals={withdrawals}
               onDone={() => { qc.invalidateQueries({ queryKey: ["seller-dashboard"] }); qc.invalidateQueries({ queryKey: ["seller-withdrawals"] }); }} />
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
 
       {/* Bottom tab bar */}
       <View style={{ flexDirection: "row", backgroundColor: NAVY, borderTopWidth: 1, borderTopColor: CARD, paddingTop: 8, paddingBottom: insets.bottom + 8, paddingHorizontal: 8 }}>
