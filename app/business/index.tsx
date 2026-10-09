@@ -13,6 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatMoney, timeAgo, getStatusColor } from "@/lib/utils";
+import LocationPickerModal from "@/components/LocationPickerModal";
 
 const ORANGE = "#EC7C2C";
 const BLUE   = "#2563EB";
@@ -105,6 +106,7 @@ export default function SellerDashboardScreen() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {tab === "home" && <ShopLocationCard api={api} />}
           {tab === "home" && (
             <HomeTab
               balance={balance} totalRevenue={totalRevenue} todaySales={todaySales}
@@ -591,5 +593,57 @@ function WalletTab({ api, balance, totalSales, withdrawals, onDone }: any) {
         </View>
       ))}
     </>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Where drivers collect this shop's orders. Without it, customers can't get delivery.
+function ShopLocationCard({ api }: any) {
+  const qc = useQueryClient();
+  const [picking, setPicking] = useState(false);
+  const { data } = useQuery({
+    queryKey: ["seller-profile"],
+    queryFn: async () => { const { data } = await api.get("/seller/profile"); return data.profile; },
+  });
+  const save = useMutation({
+    mutationFn: async (p: { latitude: number; longitude: number; address: string }) => {
+      await api.put("/seller/profile", { shop_lat: p.latitude, shop_lng: p.longitude, shop_address: p.address });
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["seller-profile"] }); Alert.alert("Saved", "Drivers will now come to this location to collect your orders."); },
+    onError: (e: any) => Alert.alert("Could not save", e?.response?.data?.error || e.message),
+  });
+  if (!data) return null;
+  const hasLocation = data.shop_lat != null && data.shop_lng != null;
+  const point = hasLocation ? { latitude: Number(data.shop_lat), longitude: Number(data.shop_lng) } : null;
+
+  return (
+    <View style={{ backgroundColor: hasLocation ? CARD : "#FFF7ED", borderRadius: 18, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: hasLocation ? BORDER : ORANGE + "60" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: ORANGE + "20", alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name={hasLocation ? "storefront" : "alert-circle"} size={20} color={ORANGE} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 15 }}>{hasLocation ? "Shop pickup location" : "Add your shop location"}</Text>
+          <Text style={{ color: "#6B7280", fontSize: 12, marginTop: 2 }} numberOfLines={2}>
+            {hasLocation ? data.shop_address || `${point!.latitude.toFixed(5)}, ${point!.longitude.toFixed(5)}` : "Drivers need it to collect orders. Customers can't request delivery until it's set."}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => setPicking(true)} disabled={save.isPending}
+          style={{ backgroundColor: hasLocation ? "#F4F5F8" : ORANGE, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 }}>
+          {save.isPending
+            ? <ActivityIndicator size="small" color={hasLocation ? ORANGE : "#fff"} />
+            : <Text style={{ color: hasLocation ? ORANGE : "#fff", fontWeight: "800", fontSize: 13 }}>{hasLocation ? "Change" : "Set"}</Text>}
+        </TouchableOpacity>
+      </View>
+      <LocationPickerModal
+        visible={picking}
+        title="Where is your shop?"
+        hint="Stand at the shop and tap the target button, or move the map so the pin is on the entrance."
+        initial={point}
+        confirmLabel="Save shop location"
+        onClose={() => setPicking(false)}
+        onConfirm={(p) => { setPicking(false); save.mutate(p); }}
+      />
+    </View>
   );
 }

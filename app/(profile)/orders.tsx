@@ -86,15 +86,22 @@ export default function OrdersScreen() {
                   <Text style={{ color: "#EC7C2C", fontSize: 16, fontWeight: "900" }}>{formatMoney(order.total_price)}</Text>
                 </View>
 
-                {/* Action buttons */}
-                {order.payment_status === "success" && (
-                  <TouchableOpacity
-                    onPress={() => router.push({ pathname: "/ride/request", params: { orderId: order.id } })}
-                    style={{ backgroundColor: "#EC7C2C15", borderRadius: 12, paddingVertical: 10, alignItems: "center", marginTop: 10, borderWidth: 1, borderColor: "#EC7C2C30", flexDirection: "row", justifyContent: "center", gap: 8 }}>
-                    <Ionicons name="bicycle-outline" size={16} color="#EC7C2C" />
-                    <Text style={{ color: "#EC7C2C", fontWeight: "700", fontSize: 13 }}>Request Delivery</Text>
-                  </TouchableOpacity>
-                )}
+                {/* Action buttons: follow a delivery already requested, or request one */}
+                {order.payment_status === "success" && (() => {
+                  const hasRide = !!order.ride_id && !["cancelled", "no_driver"].includes(order.ride_status);
+                  return (
+                    <TouchableOpacity
+                      onPress={() => hasRide
+                        ? router.push({ pathname: "/ride/tracking", params: { rideId: order.ride_id } })
+                        : router.push({ pathname: "/ride/request", params: { orderId: order.id } })}
+                      style={{ backgroundColor: hasRide ? "#2E3A74" : "#EC7C2C15", borderRadius: 12, paddingVertical: 10, alignItems: "center", marginTop: 10, borderWidth: 1, borderColor: hasRide ? "#2E3A74" : "#EC7C2C30", flexDirection: "row", justifyContent: "center", gap: 8 }}>
+                      <Ionicons name={hasRide ? "navigate" : "bicycle-outline"} size={16} color={hasRide ? "#FFFFFF" : "#EC7C2C"} />
+                      <Text style={{ color: hasRide ? "#FFFFFF" : "#EC7C2C", fontWeight: "700", fontSize: 13 }}>
+                        {!hasRide ? "Request Delivery" : order.ride_status === "delivered" ? "View Delivery" : "Track Delivery"}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })()}
               </View>
             );
           })}

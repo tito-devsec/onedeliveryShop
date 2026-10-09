@@ -3,18 +3,17 @@ import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   View, Text, TouchableOpacity, ScrollView, TextInput,
-  ActivityIndicator, Alert, StyleSheet, Dimensions
+  ActivityIndicator, Alert, StyleSheet,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatMoney, detectProvider } from "@/lib/utils";
-
-const { height } = Dimensions.get("window");
+import { addressFor, currentPosition, decodePolyline, DEFAULT_CENTER, PickedPlace } from "@/lib/maps";
+import LocationPickerModal from "@/components/LocationPickerModal";
 
 const VEHICLE_ICONS: Record<string, string> = {
   bodaboda: "🏍️", bajaj: "🛺", pickup: "🚛", toyo: "🚙",
@@ -25,50 +24,32 @@ export default function RideRequestScreen() {
   const api = useApi();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const mapRef = useRef<MapView>(null);
 
-  const [pickupLat,  setPickupLat]  = useState<number | null>(null);
-  const [pickupLng,  setPickupLng]  = useState<number | null>(null);
-  const [dropLat,    setDropLat]    = useState<number | null>(null);
-  const [dropLng,    setDropLng]    = useState<number | null>(null);
-  const [pickupAddr, setPickupAddr] = useState("");
-  const [dropAddr,   setDropAddr]   = useState("");
+  // Drop-off is the customer's location: GPS by default, adjustable on the map
+  const [dropoff, setDropoff] = useState<PickedPlace | null>(null);
+  const [locating, setLocating] = useState(true);
+  const [picking, setPicking] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [payerPhone, setPayerPhone] = useState(user?.phone || "");
-  const [locLoading, setLocLoading] = useState(false);
-  const [step, setStep]   = useState<"map" | "vehicle" | "pay">("map");
+  const [step, setStep] = useState<"map" | "vehicle" | "pay">("map");
 
-  // Get user current location
   useEffect(() => {
     (async () => {
-      setLocLoading(true);
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") return;
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        setDropLat(loc.coords.latitude);
-        setDropLng(loc.coords.longitude);
-        const geocode = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-        if (geocode[0]) setDropAddr(`${geocode[0].street || ""} ${geocode[0].city || ""}`.trim());
-      } catch {}
-      setLocLoading(false);
+      const here = await currentPosition();
+      if (here) setDropoff({ ...here, address: await addressFor(here) });
+      setLocating(false);
     })();
   }, []);
 
-  // When this delivery is for an order, the PICKUP POINT is the seller's shop
-  // and the destination is the customer's location.
-  const { data: orderData } = useQuery({
+  // The pickup point is the seller's shop — set by the server, not chosen here
+  const { data: orderData, isLoading: orderLoading } = useQuery({
     queryKey: ["order-for-ride", orderId],
     queryFn: async () => { const { data } = await api.get(`/orders/${orderId}`); return data; },
     enabled: !!orderId,
   });
-  useEffect(() => {
-    const o = orderData?.order;
-    if (o?.shop_lat && o?.shop_lng && pickupLat == null) {
-      setPickupLat(parseFloat(o.shop_lat));
-      setPickupLng(parseFloat(o.shop_lng));
-      setPickupAddr(o.shop_name ? `${o.shop_name}${o.shop_address ? " · " + o.shop_address : ""}` : (o.shop_address || "Seller shop"));
-    }
-  }, [orderData]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pickup = orderData?.order?.pickup as { lat: number; lng: number; name: string; address: string } | null | undefined;
+  const shopMissing = !!orderData && !pickup;
 
   // Order deliveries can only be dispatched after the order payment webhook
   // confirms success — poll payment status and gate the flow on it.
@@ -78,38 +59,51 @@ export default function RideRequestScreen() {
     enabled: !!orderId,
     refetchInterval: (q) => (q.state.data?.paymentStatus === "success" ? false : 4000),
   });
-  const paymentConfirmed = !orderId || payData?.paymentStatus === "success";
-  const paymentFailed    = !!orderId && payData?.paymentStatus === "failed";
+  const paymentConfirmed = payData?.paymentStatus === "success";
+  const paymentFailed    = payData?.paymentStatus === "failed";
 
-  const { data: optionsData, isLoading: optLoading } = useQuery({
-    queryKey: ["ride-options", pickupLat, pickupLng, dropLat, dropLng],
+  const { data: optionsData, isLoading: optLoading, error: optError } = useQuery({
+    queryKey: ["ride-options", orderId, dropoff?.latitude, dropoff?.longitude],
     queryFn: async () => {
-      const { data } = await api.get(
-        `/rides/options?pickup_lat=${pickupLat}&pickup_lng=${pickupLng}&dropoff_lat=${dropLat}&dropoff_lng=${dropLng}`
-      );
+      const { data } = await api.get("/rides/options", {
+        params: { order_id: orderId, dropoff_lat: dropoff!.latitude, dropoff_lng: dropoff!.longitude },
+      });
       return data;
     },
-    enabled: !!(pickupLat && pickupLng && dropLat && dropLng),
+    enabled: !!(orderId && pickup && dropoff),
+    retry: false,
   });
 
-  const options  = optionsData?.options  || [];
-  const distKm   = optionsData?.distanceKm || 0;
+  const options  = optionsData?.options || [];
+  const route    = optionsData?.route as { distanceKm: number; durationMin: number; polyline: string } | null | undefined;
+  const distKm   = route?.distanceKm ?? optionsData?.distanceKm ?? 0;
   const selected = options.find((o: any) => o.id === selectedVehicle);
+  const routeLine = useMemo(() => (route?.polyline ? decodePolyline(route.polyline) : null), [route?.polyline]);
+  const shopPoint = pickup ? { latitude: Number(pickup.lat), longitude: Number(pickup.lng) } : null;
+  const dropPoint = dropoff ? { latitude: dropoff.latitude, longitude: dropoff.longitude } : null;
+  const optionsErr = (optError as any)?.response?.data?.error as string | undefined;
+
+  // Frame the shop, the customer and the road between them
+  useEffect(() => {
+    const pts = [shopPoint, dropPoint, ...(routeLine || [])].filter(Boolean) as { latitude: number; longitude: number }[];
+    if (pts.length >= 2 && step === "map") {
+      setTimeout(() => mapRef.current?.fitToCoordinates(pts, { edgePadding: { top: 60, right: 50, bottom: 60, left: 50 }, animated: true }), 300);
+    }
+  }, [shopPoint?.latitude, dropPoint?.latitude, dropPoint?.longitude, routeLine, step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const requestMutation = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Select a vehicle first");
-      // 1) Create the ride (backend computes fare + notifies drivers)
+      if (!selected || !dropoff) throw new Error("Select a vehicle first");
+      // 1) Create the ride (the server sets the pickup, computes the fare and offers it to the nearest drivers)
       const { data } = await api.post("/rides/request", {
-        orderId: orderId || undefined,
+        orderId,
         vehicleType: selectedVehicle,
-        pickupLat,   pickupLng,   pickupAddress: pickupAddr,
-        dropoffLat: dropLat, dropoffLng: dropLng, dropoffAddress: dropAddr,
+        dropoffLat: dropoff.latitude,
+        dropoffLng: dropoff.longitude,
+        dropoffAddress: dropoff.address,
         payerPhone,
       });
-      // 2) Initiate the delivery-fee payment against the REAL ride id.
-      //    (Previously this was called before the ride existed with
-      //    rideId: "pending", which always 404'd and broke the whole flow.)
+      // 2) Initiate the delivery-fee payment against the real ride id
       try {
         await api.post("/payment/delivery", { rideId: data.rideId, payerPhone });
       } catch (feeErr: any) {
@@ -122,38 +116,23 @@ export default function RideRequestScreen() {
       router.replace({ pathname: "/ride/tracking", params: { rideId: data.rideId } });
     },
     onError: (err: any) => {
+      const existing = err?.response?.data?.rideId;
+      if (existing) {
+        router.replace({ pathname: "/ride/tracking", params: { rideId: existing } });
+        return;
+      }
       Alert.alert("Request failed", err?.response?.data?.error || err.message);
     },
   });
 
-  const handleMapPress = (e: any) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    if (!pickupLat) {
-      setPickupLat(latitude);
-      setPickupLng(longitude);
-      Location.reverseGeocodeAsync({ latitude, longitude })
-        .then((g) => { if (g[0]) setPickupAddr(`${g[0].street || ""} ${g[0].city || ""}`.trim()); });
-    } else {
-      setDropLat(latitude);
-      setDropLng(longitude);
-      Location.reverseGeocodeAsync({ latitude, longitude })
-        .then((g) => { if (g[0]) setDropAddr(`${g[0].street || ""} ${g[0].city || ""}`.trim()); });
-    }
-  };
-
-  const resetMap = () => {
-    setPickupLat(null); setPickupLng(null); setPickupAddr("");
-  };
-
-  const initialRegion = dropLat != null && dropLng != null ? { latitude: dropLat, longitude: dropLng, latitudeDelta: 0.04, longitudeDelta: 0.04 } :
-    { latitude: -6.7924, longitude: 39.2083, latitudeDelta: 0.08, longitudeDelta: 0.08 };
+  const anyNearby = options.some((o: any) => o.available > 0);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F4F5F8" }}>
       <StatusBar style="dark" />
       {/* Header */}
       <View style={{ paddingTop: insets.top + 8, paddingBottom: 12, paddingHorizontal: 20, backgroundColor: "#F4F5F8", borderBottomWidth: 1, borderBottomColor: "#FFFFFF", flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => (step === "map" ? router.back() : setStep(step === "pay" ? "vehicle" : "map"))}>
           <Ionicons name="arrow-back" size={26} color="#1B2036" />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
@@ -168,53 +147,83 @@ export default function RideRequestScreen() {
 
       {step === "map" && (
         <View style={{ flex: 1 }}>
-          {/* Map */}
           <MapView
+            ref={mapRef}
             provider={PROVIDER_GOOGLE}
             style={{ flex: 1 }}
-            initialRegion={initialRegion}
-            onPress={handleMapPress}
+            initialRegion={{ ...(dropPoint || shopPoint || DEFAULT_CENTER), latitudeDelta: 0.05, longitudeDelta: 0.05 }}
+            showsUserLocation
           >
-            {pickupLat && pickupLng && (
-              <Marker coordinate={{ latitude: pickupLat, longitude: pickupLng }} title="Pickup" pinColor="#16A34A" />
+            {shopPoint && (
+              <Marker coordinate={shopPoint} title={pickup?.name || "Shop"} description="Pickup">
+                <View style={{ backgroundColor: "#16A34A", borderRadius: 20, padding: 8, borderWidth: 2, borderColor: "#fff" }}>
+                  <Ionicons name="storefront" size={18} color="#fff" />
+                </View>
+              </Marker>
             )}
-            {dropLat && dropLng && (
-              <Marker coordinate={{ latitude: dropLat, longitude: dropLng }} title="Drop-off" pinColor="#EC7C2C" />
+            {dropPoint && (
+              <Marker coordinate={dropPoint} title="Drop-off" description={dropoff?.address} onPress={() => setPicking(true)}>
+                <View style={{ backgroundColor: "#EC7C2C", borderRadius: 20, padding: 8, borderWidth: 2, borderColor: "#fff" }}>
+                  <Ionicons name="home" size={18} color="#fff" />
+                </View>
+              </Marker>
             )}
-            {pickupLat && pickupLng && dropLat && dropLng && (
-              <Polyline coordinates={[{ latitude: pickupLat, longitude: pickupLng }, { latitude: dropLat, longitude: dropLng }]} strokeColor="#EC7C2C" strokeWidth={3} lineDashPattern={[6, 4]} />
-            )}
+            {routeLine && routeLine.length > 1 ? (
+              <Polyline coordinates={routeLine} strokeColor="#2E3A74" strokeWidth={5} />
+            ) : shopPoint && dropPoint ? (
+              <Polyline coordinates={[shopPoint, dropPoint]} strokeColor="#EC7C2C" strokeWidth={3} lineDashPattern={[6, 4]} />
+            ) : null}
           </MapView>
 
-          {/* Instruction + inputs */}
-          <View style={{ backgroundColor: "#F4F5F8", padding: 20, borderTopWidth: 1, borderTopColor: "#FFFFFF" }}>
-            <Text style={{ color: "#8A90A0", fontSize: 12, marginBottom: 12, textAlign: "center" }}>
-              {!pickupLat ? "Tap map to set PICKUP (shop/seller) location" : !dropLat ? "Tap map to set DROPOFF (your) location" : "Ready! Review your locations"}
-            </Text>
-
-            {/* Pickup */}
+          <View style={{ backgroundColor: "#F4F5F8", padding: 20, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: "#FFFFFF" }}>
+            {/* Pickup: the shop, fixed */}
             <View style={s.addrRow}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#16A34A", marginRight: 10, marginTop: 4 }} />
+              <View style={[s.dot, { backgroundColor: "#16A34A" }]} />
               <View style={{ flex: 1 }}>
-                <Text style={s.addrLabel}>Pickup</Text>
-                <Text style={s.addrText} numberOfLines={1}>{pickupAddr || (pickupLat ? `${pickupLat?.toFixed(4)}, ${pickupLng?.toFixed(4)}` : "Tap map to set")}</Text>
+                <Text style={s.addrLabel}>Pickup · shop</Text>
+                <Text style={s.addrText} numberOfLines={1}>
+                  {orderLoading ? "Loading shop…" : pickup ? `${pickup.name}${pickup.address ? " · " + pickup.address : ""}` : "Shop location not set"}
+                </Text>
               </View>
-              {pickupLat && <TouchableOpacity onPress={resetMap}><Ionicons name="close-circle" size={20} color="#DC2626" /></TouchableOpacity>}
+              <Ionicons name="lock-closed" size={16} color="#8A90A0" />
             </View>
 
-            {/* Dropoff */}
-            <View style={[s.addrRow, { marginTop: 10 }]}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#EC7C2C", marginRight: 10, marginTop: 4 }} />
+            {/* Drop-off: the customer */}
+            <TouchableOpacity onPress={() => setPicking(true)} style={[s.addrRow, { marginTop: 10 }]}>
+              <View style={[s.dot, { backgroundColor: "#EC7C2C" }]} />
               <View style={{ flex: 1 }}>
-                <Text style={s.addrLabel}>Drop-off</Text>
-                <Text style={s.addrText} numberOfLines={1}>{dropAddr || (locLoading ? "Getting your location…" : dropLat ? `${dropLat?.toFixed(4)}, ${dropLng?.toFixed(4)}` : "Tap map to set")}</Text>
+                <Text style={s.addrLabel}>Drop-off · you</Text>
+                <Text style={s.addrText} numberOfLines={1}>
+                  {dropoff?.address || (locating ? "Getting your location…" : "Set your delivery location")}
+                </Text>
               </View>
-            </View>
+              <Text style={{ color: "#EC7C2C", fontWeight: "800", fontSize: 13 }}>Change</Text>
+            </TouchableOpacity>
+
+            {shopMissing ? (
+              <View style={s.warn}>
+                <Ionicons name="alert-circle" size={18} color="#E0950B" />
+                <Text style={s.warnText}>This shop hasn't added its location yet, so a driver can't be sent. We've asked the seller to add it — please try again later.</Text>
+              </View>
+            ) : optionsErr ? (
+              <View style={s.warn}>
+                <Ionicons name="alert-circle" size={18} color="#E0950B" />
+                <Text style={s.warnText}>{optionsErr}</Text>
+              </View>
+            ) : route ? (
+              <Text style={{ color: "#6B7280", fontSize: 13, marginTop: 12, textAlign: "center" }}>
+                {route.distanceKm} km by road · about {route.durationMin} min drive
+              </Text>
+            ) : null}
 
             <TouchableOpacity
-              onPress={() => { if (!pickupLat || !dropLat) { Alert.alert("Set locations", "Please set both pickup and drop-off locations on the map."); return; } setStep("vehicle"); }}
-              style={{ backgroundColor: "#2E3A74", borderRadius: 14, paddingVertical: 16, alignItems: "center", marginTop: 16 }}>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Choose Vehicle →</Text>
+              onPress={() => {
+                if (!dropoff) { setPicking(true); return; }
+                setStep("vehicle");
+              }}
+              disabled={!pickup || !!optionsErr}
+              style={{ backgroundColor: !pickup || optionsErr ? "#A0A6B4" : "#2E3A74", borderRadius: 14, paddingVertical: 16, alignItems: "center", marginTop: 14 }}>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>{dropoff ? "Choose Vehicle →" : "Set delivery location"}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -222,14 +231,18 @@ export default function RideRequestScreen() {
 
       {step === "vehicle" && (
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
-          {distKm > 0 && (
-            <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
-              <View style={{ flex: 1, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "#E6E8EE" }}>
-                <Text style={{ color: "#8A90A0", fontSize: 11, marginBottom: 4 }}>DISTANCE</Text>
-                <Text style={{ color: "#1B2036", fontSize: 20, fontWeight: "900" }}>{distKm} km</Text>
-              </View>
+          <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
+            <View style={s.statBox}>
+              <Text style={s.statLabel}>DISTANCE</Text>
+              <Text style={s.statValue}>{distKm} km</Text>
             </View>
-          )}
+            {!!route && (
+              <View style={s.statBox}>
+                <Text style={s.statLabel}>DRIVE TIME</Text>
+                <Text style={s.statValue}>{route.durationMin} min</Text>
+              </View>
+            )}
+          </View>
 
           <Text style={{ color: "#1B2036", fontSize: 18, fontWeight: "800", marginBottom: 14 }}>Choose Vehicle</Text>
 
@@ -246,22 +259,14 @@ export default function RideRequestScreen() {
                       <Text style={{ color: "#1B2036", fontWeight: "800", fontSize: 16 }}>{opt.name}</Text>
                       <Text style={{ color: "#EC7C2C", fontWeight: "900", fontSize: 17 }}>{formatMoney(opt.fare)}</Text>
                     </View>
-                    <Text style={{ color: "#8A90A0", fontSize: 13, marginTop: 2 }}>{opt.subtitle}</Text>
-                    <View style={{ flexDirection: "row", gap: 14, marginTop: 8 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <Ionicons name="time-outline" size={13} color="#8A90A0" />
-                        <Text style={{ color: "#8A90A0", fontSize: 12 }}>{opt.eta}</Text>
-                      </View>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <Ionicons name="cube-outline" size={13} color="#8A90A0" />
-                        <Text style={{ color: "#8A90A0", fontSize: 12 }}>{opt.capacity}</Text>
-                      </View>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: opt.available > 0 ? "#16A34A" : "#DC2626" }} />
-                        <Text style={{ color: opt.available > 0 ? "#16A34A" : "#DC2626", fontSize: 12 }}>
-                          {opt.available > 0 ? `${opt.available} available` : "Not available"}
-                        </Text>
-                      </View>
+                    <Text style={{ color: "#8A90A0", fontSize: 13, marginTop: 2 }}>{opt.subtitle} · {opt.capacity}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
+                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: opt.available > 0 ? "#16A34A" : "#DC2626" }} />
+                      <Text style={{ color: opt.available > 0 ? "#16A34A" : "#DC2626", fontSize: 12, fontWeight: "600" }}>
+                        {opt.available > 0
+                          ? `${opt.available} near the shop${opt.pickupEtaMin ? ` · nearest ~${opt.pickupEtaMin} min away` : ""}`
+                          : "None near the shop right now"}
+                      </Text>
                     </View>
                   </View>
                   {selectedVehicle === opt.id && (
@@ -271,6 +276,13 @@ export default function RideRequestScreen() {
                   )}
                 </TouchableOpacity>
               ))}
+            </View>
+          )}
+
+          {!optLoading && !anyNearby && options.length > 0 && (
+            <View style={[s.warn, { marginTop: 16 }]}>
+              <Ionicons name="time-outline" size={18} color="#E0950B" />
+              <Text style={s.warnText}>No drivers are close to the shop at the moment. You can still request — we'll keep searching wider for 10 minutes.</Text>
             </View>
           )}
 
@@ -299,8 +311,8 @@ export default function RideRequestScreen() {
               </View>
             </View>
             {[
-              { label: "Distance",      value: `${distKm} km` },
-              { label: "Estimated ETA", value: selected.eta },
+              { label: "Distance",      value: `${distKm} km${route ? ` · ~${route.durationMin} min` : ""}` },
+              { label: "Driver to shop", value: selected.pickupEtaMin ? `~${selected.pickupEtaMin} min` : "Searching nearby" },
               { label: "Delivery Fee",  value: formatMoney(selected.fare), highlight: true },
             ].map((row) => (
               <View key={row.label} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderTopWidth: 1, borderTopColor: "#E6E8EE" }}>
@@ -313,17 +325,17 @@ export default function RideRequestScreen() {
           {/* Route labels */}
           <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: "#E6E8EE" }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#16A34A", marginTop: 4 }} />
-              <View>
-                <Text style={{ color: "#8A90A0", fontSize: 11 }}>PICKUP</Text>
-                <Text style={{ color: "#1B2036", fontSize: 13 }}>{pickupAddr || "Set on map"}</Text>
+              <View style={[s.dot, { backgroundColor: "#16A34A", marginRight: 0 }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: "#8A90A0", fontSize: 11 }}>PICKUP · SHOP</Text>
+                <Text style={{ color: "#1B2036", fontSize: 13 }}>{pickup ? `${pickup.name}${pickup.address ? " · " + pickup.address : ""}` : "Shop"}</Text>
               </View>
             </View>
             <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#EC7C2C", marginTop: 4 }} />
-              <View>
-                <Text style={{ color: "#8A90A0", fontSize: 11 }}>DROP-OFF</Text>
-                <Text style={{ color: "#1B2036", fontSize: 13 }}>{dropAddr || "Your location"}</Text>
+              <View style={[s.dot, { backgroundColor: "#EC7C2C", marginRight: 0 }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: "#8A90A0", fontSize: 11 }}>DROP-OFF · YOU</Text>
+                <Text style={{ color: "#1B2036", fontSize: 13 }}>{dropoff?.address || "Your location"}</Text>
               </View>
             </View>
           </View>
@@ -358,7 +370,7 @@ export default function RideRequestScreen() {
 
           {/* Order payment gating — rides for an order can only be dispatched
               once the order's mobile-money payment is confirmed by the webhook */}
-          {!!orderId && !paymentConfirmed && !paymentFailed && (
+          {!paymentConfirmed && !paymentFailed && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#E0950B10", borderColor: "#E0950B40", borderWidth: 1, borderRadius: 14, padding: 14, marginTop: 14 }}>
               <ActivityIndicator color="#E0950B" size="small" />
               <Text style={{ color: "#E0950B", fontSize: 13, flex: 1 }}>
@@ -375,12 +387,28 @@ export default function RideRequestScreen() {
           )}
         </ScrollView>
       )}
+
+      <LocationPickerModal
+        visible={picking}
+        title="Where should we deliver?"
+        hint="Move the map so the pin is on your door, or search for a place."
+        initial={dropPoint}
+        confirmLabel="Deliver here"
+        onClose={() => setPicking(false)}
+        onConfirm={(p) => { setDropoff(p); setPicking(false); }}
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  addrRow: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#FFFFFF", borderRadius: 13, padding: 12, borderWidth: 1, borderColor: "#E6E8EE" },
+  addrRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 13, padding: 12, borderWidth: 1, borderColor: "#E6E8EE", gap: 8 },
   addrLabel: { color: "#8A90A0", fontSize: 11, fontWeight: "700", textTransform: "uppercase" },
   addrText: { color: "#1B2036", fontSize: 14, marginTop: 2 },
+  dot: { width: 10, height: 10, borderRadius: 5, marginRight: 2, marginTop: 4 },
+  warn: { flexDirection: "row", gap: 8, alignItems: "flex-start", backgroundColor: "#E0950B10", borderColor: "#E0950B40", borderWidth: 1, borderRadius: 14, padding: 12, marginTop: 12 },
+  warnText: { color: "#9A6700", fontSize: 13, flex: 1, lineHeight: 18 },
+  statBox: { flex: 1, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "#E6E8EE" },
+  statLabel: { color: "#8A90A0", fontSize: 11, marginBottom: 4 },
+  statValue: { color: "#1B2036", fontSize: 20, fontWeight: "900" },
 });

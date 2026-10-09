@@ -8,6 +8,7 @@ import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { getRegisteredPushToken, setRegisteredPushToken } from "@/lib/pushToken";
+import { disconnectSocket } from "@/lib/socket";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://api.onedelivery.co.tz/api";
 
@@ -188,6 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       await clearSession();
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      disconnectSocket(); // the socket is signed in as this account
       queryClient.clear(); // drop the previous account's cart, orders, etc.
       setRegisteredPushToken(null);
       setState({ user: null, isLoaded: true, isSignedIn: false, accessToken: null });

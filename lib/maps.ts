@@ -1,28 +1,15 @@
 /**
- * OneDelivery — Google Maps Utilities
- * ─────────────────────────────────────
- * Uses:
- *  • react-native-maps with Google Maps provider (Android) and Apple Maps (iOS)
- *  • Google Places API for address autocomplete
- *  • Google Directions API for route polylines
- *
- * API keys are loaded from .env:
- *   EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY
- *   EXPO_PUBLIC_GOOGLE_MAPS_IOS_KEY
- *
- * Keys are also configured in app.json → ios.config.googleMapsApiKey
- * and android.config.googleMaps.apiKey  (used by the native Maps SDK)
+ * OneDelivery — maps helpers
+ * ──────────────────────────
+ * The map itself is react-native-maps (Google Maps SDK, key EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY
+ * set at build time). Address search, routes and live tracking go through the OneDelivery
+ * server (Google Routes API, Places API (New) and Geocoding there), so the app ships no
+ * Google web-service key.
  */
+import * as Location from "expo-location";
+import * as SecureStore from "expo-secure-store";
+import api from "@/lib/api";
 
-import { Platform } from "react-native";
-
-// Active Maps API key (for REST calls — Places, Directions)
-const MAPS_KEY =
-  Platform.OS === "ios"
-    ? process.env.EXPO_PUBLIC_GOOGLE_MAPS_IOS_KEY
-    : process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY;
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 export interface LatLng {
   latitude: number;
   longitude: number;
@@ -33,182 +20,85 @@ export interface PlacePrediction {
   description: string;
   mainText: string;
   secondaryText: string;
+  distanceMeters: number | null;
 }
 
-export interface PlaceDetails {
-  placeId: string;
-  name: string;
-  formattedAddress: string;
-  location: LatLng;
+export interface PickedPlace {
+  latitude: number;
+  longitude: number;
+  address: string;
 }
 
-export interface Route {
-  polylineEncoded: string;
-  distanceMeters: number;
-  durationSeconds: number;
-  distanceText: string;
-  durationText: string;
+// Dar es Salaam city centre
+export const DEFAULT_CENTER: LatLng = { latitude: -6.7924, longitude: 39.2083 };
+
+async function authHeaders() {
+  const token = await SecureStore.getItemAsync("od_access_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// ── Places Autocomplete ───────────────────────────────────────────────────────
-/**
- * Search for places by text query, biased to Tanzania.
- * Returns place predictions for address autocomplete UI.
- */
-export async function searchPlaces(query: string, sessionToken?: string): Promise<PlacePrediction[]> {
-  if (!query || query.length < 2) return [];
-  if (!MAPS_KEY) {
-    console.warn("Google Maps API key not set. Add EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY or EXPO_PUBLIC_GOOGLE_MAPS_IOS_KEY to .env");
-    return [];
-  }
+// A token per search: the keystrokes and the chosen result are billed as one session
+export function newSessionToken(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
-  const params = new URLSearchParams({
-    input: query,
-    key: MAPS_KEY,
-    language: "en",
-    components: "country:tz",           // restrict to Tanzania
-    location: "-6.7924,39.2083",        // bias to Dar es Salaam
-    radius: "50000",
-    ...(sessionToken ? { sessiontoken: sessionToken } : {}),
-  });
-
+export async function searchPlaces(input: string, near: LatLng | null, sessionToken: string): Promise<PlacePrediction[]> {
+  if (!input || input.trim().length < 2) return [];
   try {
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params}`,
-      { signal: AbortSignal.timeout(5000) }
-    );
-    const data = await res.json();
-
-    if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-      console.error("Places autocomplete error:", data.status, data.error_message);
-      return [];
-    }
-
-    return (data.predictions || []).map((p: any) => ({
-      placeId: p.place_id,
-      description: p.description,
-      mainText: p.structured_formatting?.main_text || p.description,
-      secondaryText: p.structured_formatting?.secondary_text || "",
-    }));
-  } catch (err) {
-    console.error("searchPlaces error:", err);
+    const { data } = await api.get("/maps/autocomplete", {
+      params: { input, session: sessionToken, ...(near ? { lat: near.latitude, lng: near.longitude } : {}) },
+      headers: await authHeaders(),
+    });
+    return data.predictions || [];
+  } catch {
     return [];
   }
 }
 
-// ── Place Details ─────────────────────────────────────────────────────────────
-/**
- * Get full details (including lat/lng) for a place by its ID.
- */
-export async function getPlaceDetails(placeId: string, sessionToken?: string): Promise<PlaceDetails | null> {
-  if (!MAPS_KEY) return null;
-
-  const params = new URLSearchParams({
-    place_id: placeId,
-    key: MAPS_KEY,
-    fields: "place_id,name,formatted_address,geometry",
-    ...(sessionToken ? { sessiontoken: sessionToken } : {}),
-  });
-
+export async function getPlace(placeId: string, sessionToken: string): Promise<PickedPlace | null> {
   try {
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?${params}`,
-      { signal: AbortSignal.timeout(5000) }
-    );
-    const data = await res.json();
-
-    if (data.status !== "OK") {
-      console.error("Place details error:", data.status);
-      return null;
-    }
-
-    const result = data.result;
-    return {
-      placeId: result.place_id,
-      name: result.name,
-      formattedAddress: result.formatted_address,
-      location: {
-        latitude: result.geometry.location.lat,
-        longitude: result.geometry.location.lng,
-      },
-    };
-  } catch (err) {
-    console.error("getPlaceDetails error:", err);
+    const { data } = await api.get(`/maps/place/${encodeURIComponent(placeId)}`, {
+      params: { session: sessionToken },
+      headers: await authHeaders(),
+    });
+    const p = data.place;
+    return p ? { latitude: p.lat, longitude: p.lng, address: p.address } : null;
+  } catch {
     return null;
   }
 }
 
-// ── Directions / Route ────────────────────────────────────────────────────────
-/**
- * Get a route between two points using Google Directions API.
- * Returns an encoded polyline for drawing on MapView.
- */
-export async function getRoute(origin: LatLng, destination: LatLng): Promise<Route | null> {
-  if (!MAPS_KEY) return null;
-
-  const params = new URLSearchParams({
-    origin: `${origin.latitude},${origin.longitude}`,
-    destination: `${destination.latitude},${destination.longitude}`,
-    key: MAPS_KEY,
-    mode: "driving",
-    region: "tz",
-    language: "en",
-    units: "metric",
-  });
-
+// Street address for a point: the phone's own geocoder first (free), the server second
+export async function addressFor(point: LatLng): Promise<string> {
   try {
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/directions/json?${params}`,
-      { signal: AbortSignal.timeout(8000) }
-    );
-    const data = await res.json();
+    const [g] = await Location.reverseGeocodeAsync(point);
+    const line = g && [g.name && g.name !== g.street ? g.name : null, g.street, g.district || g.subregion, g.city].filter(Boolean).join(", ");
+    if (line) return line;
+  } catch { /* fall through to the server */ }
+  try {
+    const { data } = await api.get("/maps/reverse", {
+      params: { lat: point.latitude, lng: point.longitude },
+      headers: await authHeaders(),
+    });
+    if (data.address) return data.address;
+  } catch { /* use coordinates */ }
+  return `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+}
 
-    if (data.status !== "OK" || !data.routes?.length) {
-      console.error("Directions error:", data.status);
-      return null;
-    }
-
-    const route = data.routes[0];
-    const leg = route.legs[0];
-    return {
-      polylineEncoded: route.overview_polyline.points,
-      distanceMeters: leg.distance.value,
-      durationSeconds: leg.duration.value,
-      distanceText: leg.distance.text,
-      durationText: leg.duration.text,
-    };
-  } catch (err) {
-    console.error("getRoute error:", err);
+// The phone's position, or null without permission / a fix
+export async function currentPosition(): Promise<LatLng | null> {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") return null;
+    const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+    return { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+  } catch {
     return null;
   }
 }
 
-// ── Reverse Geocoding ─────────────────────────────────────────────────────────
-/**
- * Convert lat/lng to a human-readable address string.
- */
-export async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  if (!MAPS_KEY) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-
-  try {
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${MAPS_KEY}&language=en&region=tz`,
-      { signal: AbortSignal.timeout(5000) }
-    );
-    const data = await res.json();
-
-    if (data.status === "OK" && data.results?.length) {
-      return data.results[0].formatted_address;
-    }
-  } catch {}
-
-  return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-}
-
-// ── Decode Polyline ───────────────────────────────────────────────────────────
 /**
  * Decode a Google encoded polyline string to an array of LatLng.
- * Use this to draw Polyline on MapView.
  */
 export function decodePolyline(encoded: string): LatLng[] {
   const coords: LatLng[] = [];
@@ -238,27 +128,11 @@ export function decodePolyline(encoded: string): LatLng[] {
   return coords;
 }
 
-// ── Map Provider ──────────────────────────────────────────────────────────────
-/**
- * Use Google Maps on Android, default (Apple Maps) on iOS.
- * react-native-maps PROVIDER_GOOGLE on iOS also works if you set the iOS key.
- */
-export { PROVIDER_GOOGLE, PROVIDER_DEFAULT } from "react-native-maps";
+export function formatDistance(meters: number): string {
+  return meters < 1000 ? `${Math.max(10, Math.round(meters / 10) * 10)} m` : `${(meters / 1000).toFixed(1)} km`;
+}
 
-export const MAP_PROVIDER = Platform.OS === "android" ? "google" : "default";
-
-// ── Dark Map Style ────────────────────────────────────────────────────────────
-// Custom dark style matching OneDelivery's #0F172A theme (Google Maps only)
-export const DARK_MAP_STYLE = [
-  { elementType: "geometry",            stylers: [{ color: "#1E293B" }] },
-  { elementType: "labels.text.fill",    stylers: [{ color: "#94A3B8" }] },
-  { elementType: "labels.text.stroke",  stylers: [{ color: "#0F172A" }] },
-  { featureType: "road",              elementType: "geometry",       stylers: [{ color: "#334155" }] },
-  { featureType: "road.arterial",     elementType: "geometry",       stylers: [{ color: "#475569" }] },
-  { featureType: "road.highway",      elementType: "geometry",       stylers: [{ color: "#64748B" }] },
-  { featureType: "water",             elementType: "geometry",       stylers: [{ color: "#0F172A" }] },
-  { featureType: "poi",               elementType: "geometry",       stylers: [{ color: "#1E293B" }] },
-  { featureType: "poi.park",          elementType: "geometry.fill",  stylers: [{ color: "#1a2e1a" }] },
-  { featureType: "transit",           stylers: [{ visibility: "off" }] },
-  { featureType: "administrative",    elementType: "geometry.stroke", stylers: [{ color: "#334155" }] },
-];
+export function formatEta(seconds: number): string {
+  const min = Math.max(1, Math.round(seconds / 60));
+  return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`;
+}
